@@ -131,8 +131,8 @@ def htrans(H, im1, im2):
     plt.show()
 
 
-im1 = cv2.imread("exercises/imageA.jpg")[:, :, ::-1]
-im2 = cv2.imread("exercises/imageB.jpg")[:, :, ::-1]
+im1 = cv2.imread("exercises/media/imageA.jpg")[:, :, ::-1]
+im2 = cv2.imread("exercises/media/imageB.jpg")[:, :, ::-1]
 H = hest_from_image(im1, im2, 4)
 
 with np.printoptions(precision=3, suppress=True):
