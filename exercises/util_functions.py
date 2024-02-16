@@ -56,7 +56,7 @@ def box3d(n=16):
 
 
 # Ex 2.2
-def projectpoints(K, R, t, Q, distCoeffs=[float]):
+def projectpoints(K, R, t, Q, distCoeffs=[]):
     """
     Project 3D points in Q onto a 2D plane of a camera with distortion.
 
@@ -68,6 +68,15 @@ def projectpoints(K, R, t, Q, distCoeffs=[float]):
 
     P : 2 x n, 2D points matrix
     """
+    if Q.shape[0] != 3:
+        raise ValueError("Q must be 3 x n")
+    if K.shape != (3, 3):
+        raise ValueError("K must be 3 x 3")
+    if R.shape != (3, 3):
+        raise ValueError("R must be 3 x 3")
+    if t.shape != (3,1):
+        raise ValueError("t must be 3 x 1")
+
     Qh = PiInv(Q)  # 4 x n
     Rt = np.hstack((R, t))  # 3 x 4
     qh = Rt @ Qh  # 3 x n
@@ -83,7 +92,7 @@ def camera_intrinsic(f, c, alpha=1, beta=0):
     Create a camera intrinsic matrix
 
     f : float, focal length
-    c : 2D principal point
+    c : 2D principal point (x,y)
     alpha : float, skew
     beta : float, aspect ratio
     """
