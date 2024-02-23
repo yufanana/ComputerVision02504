@@ -14,15 +14,17 @@ def point_line_distance(line, p):
     line : 3x1 vector
     p : 3x1 vector
     """
-    if p.shape != (3,1):
+    if p.shape != (3, 1):
         raise ValueError("p must be a 3x1 homogenous vector")
-    if line.shape != (3,1):
+    if line.shape != (3, 1):
         raise ValueError("line must be a 3x1 homogenous vector")
 
     d = abs(line.T @ p) / (abs(p[2]) * np.sqrt(line[0] ** 2 + line[1] ** 2))
     return d
 
 # Ex 1.12
+
+
 def Pi(ph):
     """
     Converts coordinates from homogeneous to inhomogeneous.
@@ -75,7 +77,7 @@ def projection_matrix(K, R, t):
 
 
 # Ex 2.2
-def projectpoints(K, R, t, Q, distCoeffs=[]):
+def project_points(K, R, t, Q, distCoeffs=[]):
     """
     Project 3D points in Q onto a 2D plane of a camera with distortion.
 
@@ -93,7 +95,7 @@ def projectpoints(K, R, t, Q, distCoeffs=[]):
         raise ValueError("K must be 3 x 3")
     if R.shape != (3, 3):
         raise ValueError("R must be 3 x 3")
-    if t.shape != (3,1):
+    if t.shape != (3, 1):
         raise ValueError("t must be 3 x 1")
 
     Qh = PiInv(Q)  # 4 x n
@@ -133,18 +135,85 @@ def distort(q, distCoeffs):
     return qd
 
 
+# Ex 2.7
+def normalize2d(q):
+    """
+    Normalize 2D points.
+
+    q : 2 x n, 2D points
+    qn : 2 x n, normalized 2D points
+    """
+    if q.shape[0] != 2:
+        raise ValueError("q must have 2 rows")
+    if q.shape[1] < 2:
+        raise ValueError("At least 2 points are required to normalize")
+
+    mu = np.mean(q, axis=1).reshape(-1, 1)
+    mu_x = mu[0].item()
+    mu_y = mu[1].item()
+    std = np.std(q, axis=1).reshape(-1, 1)
+    std_x = std[0].item()
+    std_y = std[1].item()
+    Tinv = np.array([[std_x, 0, mu_x], [0, std_y, mu_y], [0, 0, 1]])
+    T = np.linalg.inv(Tinv)
+    qn = T @ PiInv(q)
+    qn = Pi(qn)
+    return qn, T
+
+
+# Ex 2.8
+def hest(q1, q2, normalize=False):
+    """
+    Calculate the homography matrix from n sets of 2D points
+    q1 : 2 x n, 2D points in the first image
+    q2 : 2 x n, 2D points in the second image
+    H : 3 x 3, homography matrix
+    """
+    if q1.shape[1] != q2.shape[1]:
+        raise ValueError("Number of points in q1 and q2 must be equal")
+    if q1.shape[1] < 4:
+        raise ValueError("At least 4 points are required to estimate a homography")
+    if q1.shape[0] != 2 or q2.shape[0] != 2:
+        raise ValueError("q1 and q2 must have 2 rows")
+
+    if normalize:
+        q1, T1 = normalize2d(q1)
+        q2, T2 = normalize2d(q2)
+
+    n = q1.shape[1]
+    B = []
+    for i in range(n):
+        x1, y1 = q1[:, i]
+        x2, y2 = q2[:, i]
+        Bi = np.array(
+            [
+                [0, -x2, x2 * y1, 0, -y2, y2 * y1, 0, -1, y1],
+                [x2, 0, -x2 * x1, y2, 0, -y2 * x1, 1, 0, -x1],
+                [-x2 * y1, x2 * x1, 0, -y2 * y1, y2 * x1, 0, -y1, x1, 0],
+            ],
+        )
+        B.append(Bi)
+    B = np.array(B).reshape(-1, 9)
+    U, S, Vt = np.linalg.svd(B)
+    H = Vt[-1].reshape(3, 3)
+    H = H.T
+    if normalize:
+        H = np.linalg.inv(T1) @ H @ T2
+    return H
+
+
 # Ex 3.2
 def CrossOp(r):
     '''Returns the cross product operator of r.'''
-    if r.shape == (3,1):
+    if r.shape == (3, 1):
         r = r.flatten()
     if r.shape != (3,):
         raise ValueError('r must be a 3x1 vector')
 
     return np.array([
-        [0,-r[2],r[1]],
-        [r[2],0,-r[0]],
-        [-r[1],r[0],0],
+        [0, -r[2], r[1]],
+        [r[2], 0, -r[0]],
+        [-r[1], r[0], 0],
     ])
 
 
@@ -153,19 +222,20 @@ def essential_matrix(R, t):
     '''Returns the essential matrix.'''
     return CrossOp(t) @ R
 
+
 def fundamental_matrix(K1, R1, t1, K2, R2, t2):
     '''
     Returns the fundamental matrix, assuming camera 1 coordinates are
     on top of global coordinates.
     '''
-    if R1.shape != (3,3) or R2.shape != (3,3):
+    if R1.shape != (3, 3) or R2.shape != (3, 3):
         raise ValueError('R1 and R2 must be 3x3 matrices')
     if t1.shape == (3,) or t2.shape == (3,):
-        t1 = t1.reshape(-1,1)
-        t2 = t2.reshape(-1,1)
-    if t1.shape != (3,1) or t2.shape != (3,1):
+        t1 = t1.reshape(-1, 1)
+        t2 = t2.reshape(-1, 1)
+    if t1.shape != (3, 1) or t2.shape != (3, 1):
         raise ValueError('t1 and t2 must be 3x1 matrices')
-    if K1.shape != (3,3) or K2.shape != (3,3):
+    if K1.shape != (3, 3) or K2.shape != (3, 3):
         raise ValueError('K1 and K2 must be 3x3 matrices')
 
     # When the {camera1} and {camera2} are not aligned with {global}
@@ -184,9 +254,9 @@ def DrawLine(l, shape):
 
     def in_frame(l_im):
         '''Returns the intersection point of the line with the image frame.'''
-        q = np.cross(l.flatten(), l_im) # intersection point
+        q = np.cross(l.flatten(), l_im)  # intersection point
         q = q[:2]/q[2]                  # convert to inhomogeneous
-        if all(q>=0) and all(q+1<=shape[1::-1]):
+        if all(q >= 0) and all(q+1 <= shape[1::-1]):
             return q
 
     # 4 edge lines of the image
@@ -199,13 +269,13 @@ def DrawLine(l, shape):
 
     P = [in_frame(l_im) for l_im in lines if in_frame(l_im) is not None]
 
-    if (len(P)==0):
+    if (len(P) == 0):
         print("Line is completely outside image")
     plt.plot(*np.array(P).T)
 
 
 # Ex 3.11
-def triangulate(q_list,P_list):
+def triangulate(q_list, P_list):
     '''
     Triangulate a single 3D point seen by n cameras.
 
@@ -220,5 +290,5 @@ def triangulate(q_list,P_list):
         B.append(P_i[2]*qi[1]-P_i[1])
     B = np.array(B)
     U, S, Vt = np.linalg.svd(B)
-    Q = Vt[-1,:-1]/Vt[-1,-1]
+    Q = Vt[-1, :-1]/Vt[-1, -1]
     return Q
