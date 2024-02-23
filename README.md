@@ -1,8 +1,8 @@
 # ComputerVision02504
 
-This repository contains materials used as part of the course 02504 Computer Vision, at DTU in Fall 2024.
+This repository contains materials used as part of the course 02504 Computer Vision, at DTU in Spring 2024.
 
-Please submit a pull request if you find any mistakes or you would like to contribute.
+Please submit a pull request if you find any mistakes or you would like to contribute. :)
 
 ## Topics Covered
 
@@ -20,7 +20,7 @@ git clone https://github.com/yufanana/ComputerVision02504.git
 cd ComputerVision02504
 ```
 
-Create virtual environment with `virtualenv`.
+Create a Python virtual environment with `virtualenv`.
 
 ```bash
 pip install virtualenv
@@ -50,4 +50,4 @@ When running the Jupyter notebooks, select the environment previously created.
 pre-commit install
 ```
 
-Now, `pre-commit` will run every time before a commit. You can temporarily disable hooks using `git commit -m "<message>" --no-verify`
+Now, `pre-commit` will run every time before a commit. Remember to do `git add .` to add the changes made by the pre-commit (if any). You can temporarily disable hooks using `git commit -m "<message>" --no-verify`
