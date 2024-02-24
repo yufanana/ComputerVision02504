@@ -198,6 +198,7 @@ def hest(q1, q2, normalize=False):
     Args:
         q1 : 2 x n, 2D points in the first image
         q2 : 2 x n, 2D points in the second image
+        normalize : bool, whether to normalize the points
 
     Returns:
         H : 3 x 3, homography matrix

@@ -1,6 +1,6 @@
 # ComputerVision02504
 
-This repository contains materials used as part of the course 02504 Computer Vision, at DTU in Spring 2024.
+This repository contains my personal material used as part of the course 02504 Computer Vision, at DTU in Spring 2024.
 
 Please submit a pull request if you find any mistakes or you would like to contribute. :)
 
@@ -11,7 +11,7 @@ Please submit a pull request if you find any mistakes or you would like to contr
 - Week 3: Multiview geometry, epipolar, triangulation
 - Week 4: Linear camera calibration
 
-## Set Up
+## Installation
 
 Clone the repository.
 
@@ -44,7 +44,9 @@ pip install -r requirements.txt
 
 When running the Jupyter notebooks, select the environment previously created.
 
-[OPTIONAL] Set up pre-commit for code checking.
+## Development
+
+Set up pre-commit for code checking. Hooks can be found in `.pre-commit-config.yaml`
 
 ```bash
 pre-commit install

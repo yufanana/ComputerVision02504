@@ -8,4 +8,4 @@ requires-python = ">=3.11"
 
 [tool.ruff]
 line-length = 80
-ignore = ["F403","E741"]
+ignore = ["E741"]
