@@ -10,6 +10,7 @@ Please submit a pull request if you find any mistakes or you would like to contr
 - Week 2: Camera model, lens distortion, homography, point normalization
 - Week 3: Multiview geometry, epipolar, triangulation
 - Week 4: Linear camera calibration
+- Week 5: Nonlinear optimization, camera calibration, triangulation
 
 ## Installation
 
@@ -49,7 +50,9 @@ When running the Jupyter notebooks, select the environment previously created.
 Set up pre-commit for code checking. Hooks can be found in `.pre-commit-config.yaml`
 
 ```bash
+conda activate cv
 pre-commit install
+pre-commit run --all-files
 ```
 
 Now, `pre-commit` will run every time before a commit. Remember to do `git add .` to add the changes made by the pre-commit (if any). You can temporarily disable hooks using `git commit -m "<message>" --no-verify`

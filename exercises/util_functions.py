@@ -368,4 +368,197 @@ def triangulate(q_list, P_list):
     B = np.array(B)
     U, S, Vt = np.linalg.svd(B)
     Q = Vt[-1, :-1] / Vt[-1, -1]
+    Q = Q.reshape(3, 1)
     return Q
+
+
+# Ex 4.2
+def compute_rmse(q_true, q_est):
+    """
+    Returns the root mean square error between the true and estimated 2D points.
+
+    Args:
+        q_true: 2 x n array of true 2D points
+        q_est: 2 x n array of estimated 2D points
+    """
+    if q_true.shape[0] != 2 or q_est.shape[0] != 2:
+        raise ValueError("q_true and q_est must be 2 in the first dimension")
+    if q_true.shape[1] != q_est.shape[1]:
+        raise ValueError("q_true and q_est must have the same number of points")
+    se = (q_est - q_true) ** 2
+    return np.sqrt(np.mean((se)))
+
+
+# Ex 4.3
+def checkerboard_points(n, m):
+    """
+    Generate 3D points of a checkerboard with n x m squares.
+
+    Returns:
+        points : 3 x (n*m) array of 3D points
+    """
+    points = np.array(
+        [
+            (
+                i - (n - 1) / 2,
+                j - (m - 1) / 2,
+                0,
+            )
+            for i in range(n)
+            for j in range(m)
+        ],
+    ).T
+    return points
+
+
+# Ex 4.5
+def estimate_homographies(Q_omega, qs):
+    """
+    Estimate homographies for each view.
+
+    Args:
+        Q_omega : 3 x (nxm) array of untransformed 3D points
+        qs : list of 2xn arrays corresponding to each view
+
+    Returns:
+        Hs : list of 3x3 homographies for each view
+    """
+    Hs = []
+    Q = Q_omega[:2]  # remove 3rd row of zeros
+    for q in qs:
+        H = hest(q, Q)  # TODO: why hest(q, Q) instead of hest(Q, q)?
+        Hs.append(H)
+    return Hs
+
+
+# Ex 4.6
+def form_vi(H, a, b):
+    """
+    Form 1x6 vector vi using H and indices alpha, beta.
+
+    Args:
+        H : 3x3 homography
+        a, b : indices alpha, beta
+
+    Returns:
+        vi : 1x6 vector
+    """
+    # Use zero-indexing here. Notes uses 1-indexing.
+    a = a - 1
+    b = b - 1
+    vi = np.array(
+        [
+            H[0, a] * H[0, b],
+            H[0, a] * H[1, b] + H[1, a] * H[0, b],
+            H[1, a] * H[1, b],
+            H[2, a] * H[0, b] + H[0, a] * H[2, b],
+            H[2, a] * H[1, b] + H[1, a] * H[2, b],
+            H[2, a] * H[2, b],
+        ],
+    )
+    vi = vi.reshape(1, 6)
+    return vi
+
+
+# Ex 4.6
+def estimate_b(Hs):
+    """
+    Estimate b matrix used Zhang's method for camera calibration.
+
+    Args:
+        Hs : list of 3x3 homographies for each view
+
+    Returns:
+        b : 6x1 vector
+    """
+    V = []  # coefficient matrix
+    # Create constraints in matrix form
+    for H in Hs:
+        vi_11 = form_vi(H, 1, 1)
+        vi_12 = form_vi(H, 1, 2)
+        vi_22 = form_vi(H, 2, 2)
+        v = np.vstack((vi_12, vi_11 - vi_22))  # 2 x 6
+        V.append(v)
+    # V = np.array(V) creates the wrong array shape
+    V = np.vstack(V)  # 2n x 6
+    U, S, bt = np.linalg.svd(V.T @ V)
+    b = bt[-1].reshape(6, 1)
+    return b
+
+
+# Ex 4.7
+def estimate_intrinsics(Hs):
+    """
+    Estimate intrinsic matrix using Zhang's method for camera calibration.
+
+    Args:
+        Hs : list of 3x3 homographies for each view
+
+    Returns:
+        K : 3x3 intrinsic matrix
+    """
+    b = estimate_b(Hs)
+    B11, B12, B22, B13, B23, B33 = b
+    # Appendix B of Zhang's paper
+    v0 = (B12 * B13 - B11 * B23) / (B11 * B22 - B12**2)
+    lambda_ = B33 - (B13**2 + v0 * (B12 * B13 - B11 * B23)) / B11
+    alpha = np.sqrt(lambda_ / B11)
+    beta = np.sqrt(lambda_ * B11 / (B11 * B22 - B12**2))
+    gamma = -B12 * alpha**2 * beta / lambda_
+    u0 = lambda_ * v0 / beta - B13 * alpha**2 / lambda_
+    # above values are sequences [value], so using [0] below is needed
+    K = np.array([[alpha[0], gamma[0], u0[0]], [0, beta[0], v0[0]], [0, 0, 1]])
+    return K
+
+
+# Ex 4.8
+def estimate_extrinsics(K, Hs):
+    """
+    Estimate extrinsic parameters using Zhang's method for camera calibration.
+
+    Args:
+        K : 3x3 intrinsic matrix
+        Hs : list of 3x3 homographies for each view
+
+    Returns:
+        Rs : list of 3x3 rotation matrices
+        ts : list of 3x1 translation vectors
+    """
+    Kinv = np.linalg.inv(K)
+    Rs = []
+    ts = []
+    for H in Hs:  # H = [h1|h2|h3]
+        h1 = H[:, 0]
+        h2 = H[:, 1]
+        h3 = H[:, 2]
+        lambda_ = np.linalg.norm(Kinv @ h1, 2)
+        r1 = 1 / lambda_ * Kinv @ h1  # (3,)
+        r2 = 1 / lambda_ * Kinv @ h2
+        r3 = np.cross(r1, r2)
+        t = np.array(1 / lambda_ * Kinv @ h3).reshape(3, 1)  # 3 x 1
+        R = np.vstack((r1, r2, r3)).T  # 3 x 3 [r1|r2|r3]
+        Rs.append(R)
+        ts.append(t)
+    Rs = np.array(Rs)
+    ts = np.array(ts)
+    return Rs, ts
+
+
+# Ex 4.8
+def calibrate_camera(qs, Q):
+    """
+    Calibrate camera using Zhang's method for camera calibration.
+
+    Args:
+        qs : list of 2xn arrays corresponding to each view
+        Q : 3 x (nxm) array of untransformed 3D points
+
+    Returns:
+        K : 3x3 intrinsic matrix
+        Rs : list of 3x3 rotation matrices
+        ts : list of 3x1 translation vectors
+    """
+    Hs = estimate_homographies(Q, qs)
+    K = estimate_intrinsics(Hs)
+    Rs, ts = estimate_extrinsics(K, Hs)
+    return K, Rs, ts
