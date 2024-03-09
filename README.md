@@ -10,7 +10,10 @@ Please submit a pull request if you find any mistakes or you would like to contr
 - Week 2: Camera model, lens distortion, homography, point normalization
 - Week 3: Multiview geometry, epipolar, triangulation
 - Week 4: Linear camera calibration
-- Week 5: Nonlinear optimization, camera calibration, triangulation
+- Week 5: Nonlinear optimization, camera calibration
+    - Levenberg-Marquardt: least squares problem with 2nd order approximation using only 1st order derivatives
+    - Gradients: analytical or finite differences (Taylor series)
+    - Rotations in Optimization (euler angles, axis angles, quaternions)
 
 ## Installation
 
