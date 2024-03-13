@@ -18,6 +18,9 @@ def canny_trackbar(im) -> None:
     Press 's' to save the current value and move on with the program.
     """
 
+    canny_t1 = 100
+    canny_t2 = 200
+
     def canny_t1_callback(new_val) -> None:
         """
         Callback function for the trackbar that runs Canny edge
@@ -38,13 +41,10 @@ def canny_trackbar(im) -> None:
         edges = cv2.Canny(im, canny_t1, canny_t2)
         cv2.imshow("Canny Edge Detection", edges)
 
-    canny_t1 = 100
-    canny_t2 = 200
-
     # Create window with trackbar
     cv2.namedWindow("Canny Edge Detection")
-    cv2.createTrackbar("T1","Canny Edge Detection",0,500,canny_t1_callback)
-    cv2.createTrackbar("T2","Canny Edge Detection",0,500,canny_t2_callback)
+    cv2.createTrackbar("T1", "Canny Edge Detection", 0, 500, canny_t1_callback)
+    cv2.createTrackbar("T2", "Canny Edge Detection", 0, 500, canny_t2_callback)
     # Show original image in the window with trackbar
     cv2.imshow("Canny Edge Detection", im)
 

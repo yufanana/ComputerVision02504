@@ -1,6 +1,7 @@
 """
 Utilty functions commonly used in exercises and quizzes.
 """
+import cv2
 import numpy as np
 import itertools as it
 import matplotlib.pyplot as plt
@@ -562,3 +563,128 @@ def calibrate_camera(qs, Q):
     K = estimate_intrinsics(Hs)
     Rs, ts = estimate_extrinsics(K, Hs)
     return K, Rs, ts
+
+
+# Ex 6.1
+def gaussian_1D_kernel(sigma):
+    """
+    Returns the 1D Gaussian kernel.
+
+    Args:
+        sigma : width of Gaussian kernel
+
+    Returns:
+        g : 1D Gaussian kernel
+        gd : 1D Gaussian kernel derivative
+    """
+    if sigma == 0:
+        return [1], [0]
+    rule = 5
+    x = np.arange(-rule * sigma, rule * sigma + 1)
+    g = np.exp(-(x**2) / (2 * sigma**2))
+    g = g / np.sum(g)  # normalize
+    gd = -x / (sigma**2) * g
+    return g, gd
+
+
+# Ex 6.2
+def gaussian_smoothing(im, sigma):
+    """
+    Smooths the input image with a 1D Gaussian kernel.
+
+    Args:
+        im : input image
+        sigma : width of Gaussian kernel
+
+    Returns:
+        I : smoothed image
+        Ix : image derivative in x-direction
+        Iy : image derivative in y-direction
+    """
+    g, gd = gaussian_1D_kernel(sigma)
+    I = cv2.sepFilter2D(im, -1, g, g)
+    Ix = cv2.sepFilter2D(im, -1, gd, g)
+    Iy = cv2.sepFilter2D(im, -1, g, gd)
+    return I, Ix, Iy
+
+
+# Ex 6.3
+def structure_tensor(im, sigma, epsilon):
+    """
+    Computes the structure tensor C(x,y) of the input image.
+
+    Args:
+        im : input image
+        sigma : Gaussian width to compute derivatives
+        epsilon : Gaussian width to compute the structure tensor
+
+    Returns:
+        J : structure tensor
+    """
+    I, Ix, Iy = gaussian_smoothing(im, sigma)
+
+    g_eps, g_eps_d = gaussian_1D_kernel(epsilon)
+    C = np.zeros((2, 2))
+    C00 = cv2.sepFilter2D(Ix**2, -1, g_eps, g_eps)
+    C01 = cv2.sepFilter2D(Ix * Iy, -1, g_eps, g_eps)
+    C10 = C01
+    C11 = cv2.sepFilter2D(Iy**2, -1, g_eps, g_eps)
+    C = np.array([[C00, C01], [C10, C11]])
+
+    return C
+
+
+# Ex 6.4
+def harris_measure(im, sigma, epsilon, k):
+    """
+    Computes the Harris measure R(x,y) of the input image.
+
+    Args:
+        im : (h,w) input image
+        sigma : Gaussian width to compute derivatives
+        epsilon : Gaussian width to compute the structure tensor
+        k : sensitivity factor
+
+    Returns:
+        r : (h,w), Harris measure
+    """
+    C = structure_tensor(im, sigma, epsilon)
+    a = C[0, 0]
+    b = C[1, 1]
+    c = C[0, 1]
+    r = a * b - c**2 - k * (a + b) ** 2
+    return r
+
+
+# Ex 6.5
+def corner_detector(im, sigma, epsilon, tau, k):
+    """
+    Detects corners in the input image using the Harris measure
+    with non-max suprrssion and thresholding.
+
+    Args:
+        im : input image
+        sigma : Gaussian width to compute derivatives
+        epsilon : Gaussian width to compute the structure tensor
+        tau : threshold for Harris measure
+        k : sensitivity factor
+
+    Returns:
+        c : list of corner coordinates
+    """
+    r = harris_measure(im, sigma, epsilon, k)
+    print(f"r: [{r.max():.2f}, {r.min():.2f}], tau = {tau/r.max():.2f}*r.max")
+
+    # Perform 4-neigbourhood non-max suppression
+    c = []
+    for i in range(1, r.shape[0] - 1):
+        for j in range(1, r.shape[1] - 1):
+            if (
+                r[i, j] > r[i + 1, j]
+                and r[i, j] >= r[i - 1, j]
+                and r[i, j] > r[i, j + 1]
+                and r[i, j] >= r[i, j - 1]
+                and r[i, j] > tau
+            ):  # Threshold
+                c.append([i, j])
+    return c
