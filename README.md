@@ -14,6 +14,9 @@ Please submit a pull request if you find any mistakes or you would like to contr
     - Levenberg-Marquardt: least squares problem with 2nd order approximation using only 1st order derivatives
     - Gradients: analytical or finite differences (Taylor series)
     - Rotations in Optimization (euler angles, axis angles, quaternions)
+- Week 6: Simple features, Harris corner, Gaussian filtering, Gaussian derivative,
+- Week 7: Robust model fitting, RANSAC, Hough transform
+- Week 8: SIFT features, difference of Gaussians, scale space pyramid
 
 ## Installation
 
