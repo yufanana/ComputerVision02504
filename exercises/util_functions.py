@@ -34,10 +34,10 @@ def Pi(ph):
     Converts coordinates from homogeneous to inhomogeneous.
 
     Args:
-        ph : 4xn np.array
+        ph : (n+1)xm  np.array
 
     Returns:
-        p : 3xn np.array
+        p : nxm np.array
     """
     p = ph[:-1] / ph[-1]  # divide by and remove last coordinate
     return p
@@ -47,11 +47,12 @@ def Pi(ph):
 def PiInv(p):
     """
     Converts coordinates from inhomogeneous to homogeneous.
+
     Args:
-        p : 3xn np.array
+        p : nxm np.array
 
     Returns:
-        ph : 4xn np.array
+        ph : (n+1)xm np.array
     """
     ph = np.vstack((p, np.ones(p.shape[1])))
     return ph
