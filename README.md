@@ -2,8 +2,6 @@
 
 This repository contains my personal material used as part of the course 02504 Computer Vision, at DTU in Spring 2024.
 
-Please submit a pull request if you find any mistakes or you would like to contribute. :)
-
 ## Topics Covered
 
 - Week 1: Homogenous coordinates, pinhole model, projection
@@ -70,6 +68,55 @@ Now, `pre-commit` will run every time before a commit. Remember to do `git add .
 ```bash
 git commit -m "<message>" --no-verify
 ```
+
+## week 7: Robust Model Fitting
+
+Hough Lines
+
+- Vertical lines are undefined in cartesian $\Rightarrow$ use polar coordinates
+- Represent a line with $\theta, r$
+  - $\theta$ is the angle between norm and x-axis
+  - $r$ is the norm distance of the line from the origin
+
+<img src="assets/hough_line.png" width="500">
+
+<!-- ![hough line](assets/hough_line.png) -->
+
+Hough Transform
+
+- Each point votes for all the possible lines that go through it
+- Each point corresponds to a line in Hough space
+- Peak in hough space $\Rightarrow$ line in image
+- Find peaks using non-max suppression in a region
+- Hough space not practical for more than 3 DoF
+
+<img src="assets/hough_transform_eg.png" width="500">
+
+Random sample consensus, RANSAC
+
+- Randomly sample minimum number of points needed to fit the model
+  - e.g. 2 data points for a line
+  - e.g. 8 corresponding data points for fundamental matrix
+- Fit the model to the random samples
+- Measure inliers that are close to the model below a threshold $\rarr$ indicates good fit of model
+  - e.g. euclidean distance for a line
+  - e.g. sampson distance for fundamental matrix
+- Consensus is the number of inliers
+- Keep track of best model and best inliers with the highest consensus
+- Refit model to all inliers of the best model
+
+<img src="assets/ransac_eg.png" width="500">
+
+RANSAC iterations
+
+- Estimate the upper bound of the number of iterations required to have at least one sample with only inliers
+- The estimate is updated while running RANSAC
+- $\hat \epsilon = 1 - \frac{s}{m}$
+  - s: no. of inliers of best model
+  - m: total no. of data points
+- $\hat N = \frac{log(1-p)}{log((1-(1-\hat \epsilon)^n))}$
+  - p: probability that at least one of N samples has only inliers, e.g. $0.99$
+- Terminate once there are more than $\hat N$ iterations
 
 ## Week 8: BLOBs and SIFT features
 
@@ -195,4 +242,4 @@ RANSAC Workflow
 7. Repeat for fixed number of iterations
 8. Refit fundamental matrix on set of best inliers
 
-![Chi-square Distribution Table](assets/chi_square_distribution.png)
+<img src="assets/chi_square_distribution.png" width="500">
