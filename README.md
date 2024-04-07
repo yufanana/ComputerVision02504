@@ -1,23 +1,20 @@
 # ComputerVision02504
 
-This repository contains my personal material used as part of the course 02504 Computer Vision, at DTU in Spring 2024.
+This repository contains my personal notes and notebooks used as part of the course 02504 Computer Vision, at DTU in Spring 2024. Syntax for writing markdown can be found at [ashki23](https://ashki23.github.io/markdown-latex.html).
 
 ## Topics Covered
 
-- Week 1: Homogenous coordinates, pinhole model, projection
-- Week 2: Camera model, lens distortion, homography, point normalization
-- Week 3: Multiview geometry, epipolar, triangulation
-- Week 4: Linear camera calibration
-- Week 5: Nonlinear optimization, camera calibration
-  - Levenberg-Marquardt: least squares problem with 2nd order approximation using only 1st order derivatives
-  - Gradients: analytical or finite differences (Taylor series)
-  - Rotations in Optimization (euler angles, axis angles, quaternions)
-- Week 6: Simple features, Harris corner, Gaussian filtering, Gaussian derivative,
-- Week 7: Robust model fitting, RANSAC, Hough transform
-- Week 8: SIFT features, difference of Gaussians, scale space pyramid
-- Week 9: Esimate Fundamental matrix using RANSAC
-
-<!--toc-->
+|Week               | Topic     |
+|:------------------|:----------|
+| [Week 1: Pinhole and homogeneous](#week-1-pinhole-and-homogeneous) | Homogenous coordinates <br> pinhole model <br> projection |
+| [Week 2: Camera model and homography](#week-2-camera-model-and-homography) | Camera model <br> Lens distortion <br> Homography <br> Point normalization |
+| [Week 3: Multiview geometry](#week-3-multiview-geometry) | Epipolar <br> Triangulation |
+| [Week 4: Camera calibration](#week-4-camera-calibration) | Linear camera calibration|
+| [Week 5: Nonlinear and calibration](#week-5-nonlinear-and-calibration) | Levenberg-Marquardt <br> Gradients <br> Rotations in optimization |
+| [Week 6: Simple Features](#week-6-simple-features) | Harris corner <br> Gaussian filtering <br> Gaussian derivative |
+| [Week 7: Robust model fitting](#week-7-robust-model-fitting) | Hough line <br> Hough transform <br> RANSAC |
+| [Week 8: SIFT features](#week-8-blobs-and-sift-features) | BLOB detection <br> Scale space pyramid <br> Difference of Gaussians <br> SIFT features |
+| [Week 9: Geometry Constrained Feature<br> Matching](#week-9-geometry-constrained-feature-matching) | Esimate Fundamental matrix using RANSAC <br> Sampson's distance |
 
 ## Installation
 
@@ -28,7 +25,14 @@ git clone https://github.com/yufanana/ComputerVision02504.git
 cd ComputerVision02504
 ```
 
-Create a Python virtual environment with `virtualenv`.
+Create an environment with `Conda`.
+
+```bash
+conda create --name cv
+pip install -r requirements.txt
+```
+
+Or, create a Python virtual environment with `virtualenv`.
 
 ```bash
 pip install virtualenv
@@ -43,14 +47,7 @@ pip install -r requirements.txt
 pip install -r requirements.txt
 ```
 
-Or, create an environment with `Conda`.
-
-```bash
-conda create --name cv
-pip install -r requirements.txt
-```
-
-When running the Jupyter notebooks, select the environment previously created.
+When running the Jupyter notebooks, select kernel of the environment previously created.
 
 ## Development
 
@@ -69,7 +66,156 @@ Now, `pre-commit` will run every time before a commit. Remember to do `git add .
 git commit -m "<message>" --no-verify
 ```
 
-## week 7: Robust Model Fitting
+## Week 1: Pinhole and Homogeneous
+
+[Back to top](#topics-covered)
+
+## Week 2: Camera Model and Homography
+
+[Back to top](#topics-covered)
+
+## Week 3: Multiview Geometry
+
+[Back to top](#topics-covered)
+
+## Week 4: Camera Calibration
+
+[Back to top](#topics-covered)
+
+## Week 5: Nonlinear and Calibration
+
+[Back to top](#topics-covered)
+
+
+
+  - Levenberg-Marquardt: least squares problem with 2nd order approximation using only 1st order derivatives
+  - Gradients: analytical or finite differences (Taylor series)
+  - Rotations in Optimization (euler angles, axis angles, quaternions)
+
+## Week 6: Simple Features
+
+[Back to top](#topics-covered)
+
+Problems with image correspondence
+
+- Scale, rotation, translation $\rarr$ appearance changes depending on distance and pose of camera
+- Other issues: occlusion, lighting intensity, lighting diretion, clutter
+- Key points/interest points/feature points: coordinate position of points in an image
+- Descriptors: characterizes pattern around a point (usually a vector)
+
+Convolution
+
+- Synonymous with filtering.
+- Is commutative $I_g = g * I = I * g$
+- Is separable $I_g = (g*g^T) * I = g * (g^T*I)$
+- Size of Gaussian filter
+  - Uses an empiric rule of $3\sigma$ or $5\sigma$
+  - size = $ 2 \cdot rule \cdot \sigma + 1$
+  - e.g. 5-rule, $\sigma=2$, size $= 2 \cdot 5 \cdot 2 + 1 = 21$
+
+<img src="assets/convolution.png" width="500">
+
+Derivative of Gaussian
+
+$$
+g_d(x) = \frac{d}{dx}g(x) = \frac{-x}{\sigma^2}g(x)
+$$
+
+Derivative of blurred image $I_b$ in the x-direction is
+
+$$
+\begin{align*}
+\frac{\partial}{\partial x}I_b &= \frac{\partial}{\partial x}(g * g^T * I) \\
+&= g * (\frac{\partial}{\partial x}g^T) * I \\
+&= g * g_d^T * I
+\end{align*}
+$$
+
+Harris Corners
+
+- Points with locally maximum change from a small shift
+- A local area where $\Delta I(x,y,\Delta_x, \Delta_y)^2$ is large no matter $\Delta_x, \Delta_y$
+
+$$
+\Delta I(x,y,\Delta_x, \Delta_y) = I(x,y,) - I(x+\Delta_x, y+ \Delta_y)
+$$
+
+Harris corner measure
+
+- approximated using Taylor series expansion
+
+$$
+\begin{align*}
+
+c(x,y,\Delta_xm \Delta_y) &= g * \Delta I(x,y,\Delta _x, \Delta _y) \\
+&= g * (I(x,y,) - I(x+\Delta_x, y+ \Delta_y))^2 \\
+&\approx g * (\begin{bmatrix}I_x & I_y\end{bmatrix} \begin{bmatrix} \Delta_x \\ \Delta_y \end{bmatrix})^2 \\
+&= g * (\begin{bmatrix}I_x & I_y\end{bmatrix}
+\begin{bmatrix}I_x^2 & I_x I_y \\ I_x I_y & I_y^2\end{bmatrix}
+\begin{bmatrix} \Delta_x \\ \Delta_y \end{bmatrix}) \\
+&=
+\begin{bmatrix}I_x & I_y\end{bmatrix}
+\begin{bmatrix}
+g * (I_x^2) & g * (I_x I_y) \\[0.3em]
+g * (I_x I_y) & g * (I_y^2) \\[0.3em]
+\end{bmatrix}
+\begin{bmatrix} \Delta_x \\ \Delta_y \end{bmatrix}
+
+\end{align*}
+$$
+
+Structure tensor
+
+$$
+\begin{align*}
+
+C(x,y) &=
+\begin{bmatrix}
+g * (I_x^2) & g * (I_x I_y) \\[0.3em]
+g * (I_x I_y) & g * (I_y^2) \\[0.3em]
+\end{bmatrix} \\
+&= \begin{bmatrix}
+a & c \\[0.3em]
+c & b \\[0.3em]
+\end{bmatrix} \\
+
+\end{align*}
+$$
+
+Use eigenvalues $\lambda_1 , \lambda_2$ to find large values of $c(x,y,\Delta_x,\Delta_y)$
+
+Harris corner metric
+
+$$
+\begin{align*}
+
+r(x,y) &= \lambda_1 \lambda_2 - k(\lambda_1 + \lambda_2)^2  \\
+&= ab - c^2 - k(a+b)^2
+
+\end{align*}
+$$
+
+typically $k=0.06$
+
+- Corners are at points with $r(x,y) > \tau$
+- threshold $\tau$ is about $0.1\cdot max(r(x,y)) < \tau < 0.8 \cdot max (r(x,y))$
+- Find local maximum using non-max suppression
+
+Canny Edges
+
+- Metric is the gradient magnitude
+
+$$
+m(x,y) = \sqrt{I_x^2(x,y) + I_y^2(x,y)}
+$$
+
+- Choose $\tau_1 > \tau_2$
+- seed: labels edges with a $m(x,y) > \tau_1$
+- grow: grow edges with a $m(x,y) > \tau_2$, label iff new points are next to previously labelled edges
+
+## Week 7: Robust Model Fitting
+
+[Back to top](#topics-covered)
 
 Hough Lines
 
@@ -119,6 +265,8 @@ RANSAC iterations
 - Terminate once there are more than $\hat N$ iterations
 
 ## Week 8: BLOBs and SIFT features
+
+[Back to top](#topics-covered)
 
 See examples in [ex8.ipynb](notebooks/ex8.ipynb)
 
@@ -173,7 +321,9 @@ Variations
 - RootSIFT: Hellinger kernel
 - SURF, ORB, BRIEF, BRISK
 
-## Week 9: Geometry Constrainde Feature Matching
+## Week 9: Geometry Constrained Feature Matching
+
+[Back to top](#topics-covered)
 
 Fundamentral and Essential Matrix
 
