@@ -15,6 +15,7 @@ This repository contains my personal notes and notebooks used as part of the cou
 | [Week 7: Robust model fitting](#week-7-robust-model-fitting) | Hough line <br> Hough transform <br> RANSAC |
 | [Week 8: SIFT features](#week-8-blobs-and-sift-features) | BLOB detection <br> Scale space pyramid <br> Difference of Gaussians <br> SIFT features |
 | [Week 9: Geometry Constrained Feature<br> Matching](#week-9-geometry-constrained-feature-matching) | Esimate Fundamental matrix using RANSAC <br> Sampson's distance |
+| [Week 10: Image Stitching](#week-10-image-stitching) | Estimate Homography <br> Panoramas |
 
 ## Installation
 
@@ -98,7 +99,7 @@ git commit -m "<message>" --no-verify
 
 Problems with image correspondence
 
-- Scale, rotation, translation $\rarr$ appearance changes depending on distance and pose of camera
+- Scale, rotation, translation $\to$ appearance changes depending on distance and pose of camera
 - Other issues: occlusion, lighting intensity, lighting diretion, clutter
 - Key points/interest points/feature points: coordinate position of points in an image
 - Descriptors: characterizes pattern around a point (usually a vector)
@@ -130,6 +131,10 @@ $$
 &= g * g_d^T * I
 \end{align*}
 $$
+
+<img src="assets/gaussian_kernels.png" width="500">
+
+<img src="assets/gaussian_kernels_sigma.png" width="500">
 
 Harris Corners
 
@@ -264,6 +269,14 @@ RANSAC iterations
   - p: probability that at least one of N samples has only inliers, e.g. $0.99$
 - Terminate once there are more than $\hat N$ iterations
 
+| Model | Codimension | $T^2$ |
+| :----: | :------: | :------:|
+| Line | 1 | $3.84 \sigma^2$ |
+| Fundamental Matrix | 1 | $3.84 \sigma^2$ |
+| Essential Matrix | 1 | $3.84 \sigma^2$ |
+| Homography | 2 | $5.99 \sigma^2$ |
+| Camera Matrix | 2 | $5.99 \sigma^2$ |
+
 ## Week 8: BLOBs and SIFT features
 
 [Back to top](#topics-covered)
@@ -303,6 +316,7 @@ Difference of Gaussians (DoG)
 - $DoG = L(x,y,k\sigma) - L(x,y,\sigma)$
 - the same threshold can be applied for all scale spaces
 - find local extrama of DoGs in scale space
+  - use absolute to find min & max simultaneously
 
 Orientation assignment
 
@@ -393,3 +407,7 @@ RANSAC Workflow
 8. Refit fundamental matrix on set of best inliers
 
 <img src="assets/chi_square_distribution.png" width="500">
+
+## Week 10: Image Stitching
+
+

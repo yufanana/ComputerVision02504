@@ -5,6 +5,7 @@ import cv2
 import numpy as np
 import itertools as it
 import matplotlib.pyplot as plt
+import matplotlib as mpl
 
 
 # Ex 1.7
@@ -720,3 +721,53 @@ def corner_detector(im, sigma, epsilon, tau, k):
             ):  # Threshold
                 c.append([i, j])
     return c
+
+
+# Ex 9.2
+def find_features(im1, im2, plot=False):
+    """
+    Find matching features between two images.
+
+    Args:
+        im1 (np.ndarray): The first image.
+        im2 (np.ndarray): The second image.
+
+    Returns:
+        matches (list): Matching features (cv2.DMatch objects).
+        kp1 (list): Keypoints in the first image.
+        kp2 (list): Keypoints in the second image.
+    """
+    # Initiate SIFT detector
+    sift = cv2.SIFT_create()
+
+    # Find the keypoints and descriptors with SIFT
+    kp1, des1 = sift.detectAndCompute(im1, None)
+    kp2, des2 = sift.detectAndCompute(im2, None)
+
+    # Create BFMatcher object
+    bf = cv2.BFMatcher(crossCheck=True)
+
+    # Match descriptors
+    matches = bf.match(des1, des2)
+    matches = sorted(matches, key=lambda x: x.distance)  # ascending
+
+    # Draw first 10 matches.
+    if plot:
+        img3 = cv2.drawMatches(
+            im1,
+            kp1,
+            im2,
+            kp2,
+            matches[:10],
+            None,
+            flags=cv2.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS,
+        )
+        mpl.rcParams["figure.figsize"] = [15, 10]
+        plt.imshow(img3)
+        plt.axis("off")
+        plt.title("Closest 10 matches")
+        plt.show()
+        mpl.rcParams["figure.figsize"] = [8, 6]
+
+    return matches, kp1, kp2
+
