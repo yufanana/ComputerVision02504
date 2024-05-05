@@ -8,8 +8,8 @@ This repository contains my personal notes and notebooks used as part of the cou
 |:------------------|:----------|
 | [Week 1: Pinhole and homogeneous](#week-1-pinhole-and-homogeneous) | Homogenous coordinates <br> pinhole model <br> projection |
 | [Week 2: Camera model and homography](#week-2-camera-model-and-homography) | Camera model <br> Lens distortion <br> Homography <br> Point normalization |
-| [Week 3: Multiview geometry](#week-3-multiview-geometry) | Epipolar <br> Triangulation |
-| [Week 4: Camera calibration](#week-4-camera-calibration) | Linear camera calibration|
+| [Week 3: Multiview geometry](#week-3-multiview-geometry) | Epipolar <br> Essential matrix <br> Fundamental matrix <br> Triangulation |
+| [Week 4: Camera calibration](#week-4-camera-calibration) | Direct linear transformation <br> Linear camera calibration|
 | [Week 5: Nonlinear and calibration](#week-5-nonlinear-and-calibration) | Levenberg-Marquardt <br> Gradients <br> Rotations in optimization |
 | [Week 6: Simple Features](#week-6-simple-features) | Harris corner <br> Gaussian filtering <br> Gaussian derivative |
 | [Week 7: Robust model fitting](#week-7-robust-model-fitting) | Hough line <br> Hough transform <br> RANSAC |
@@ -83,15 +83,144 @@ git commit -m "<message>" --no-verify
 
 [Back to top](#topics-covered)
 
+Direct Linear Transformation
+
+$$
+\begin{align*}
+
+q_i &= P Q_i \\
+0 &= q_i \times P Q_i \\
+ &= B^{(i)} flatten(P^T)
+
+\end{align*}
+$$
+
+- where $B^{(1)}$ is a 3x12 matrix
+- solve for B using SVD
+
+Zhang's method for linear calibration
+
+<img src="assets/checkerboard.png" width="200">
+
+- assume checkboard corners are at $z=0$, simplifies the projection equation
+
+$$
+\begin{align*}
+q_ij &= H_i \tilde{Q}_j \\
+
+H_i = [h_i^{(1)} h_i^{(2)} h_i^{(3)}] &= \lambda K [r_i^{(1)} r_i^{(2)} t_i] \\
+
+{h_i^{(1)}}^T K^{-T} K^{-1}h_i^{2}
+ &= 0 \\
+
+{h_i^{(1)}}^T K^{-T} K^{-1}h_i^{1} = 
+{h_i^{(2)}}^T K^{-T} K^{-1}h_i^{2} &= 
+\lambda_i^2
+
+\end{align*}
+$$
+
+- A single homography only fixes 2 DoF of a camera matrix.
+
+- Rewriting the constraints into a matrix form,
+
+$$
+V b = \begin{bmatrix}
+v_i^{12} \\[0.3em]
+v_i^{11} - v_i^{22}\\[0.3em]
+...
+\end{bmatrix} b = 0 \\
+$$
+
+where
+$$
+\begin{align*}
+
+v_i^{\alpha \beta} b &= {h_i^{\alpha}}^T B h_i^{\beta} \\
+b &= \begin{bmatrix}B_{11} & B_{12} & B_{22} & B_{13} & B_{23} & B_{33} \end{bmatrix} \\
+B &= K^{-T} K^{-1}
+
+\end{align*}
+$$
+
+- $v_i^{\alpha \beta}$ can be evaluated to a 1x6 vector.
+- Solve $ Vb = 0$ for $b$ using SVD. Then, use formulas from Zhang's paper to find $K$.
+- To find $R_i, t_i$,
+
+$$
+\begin{align*}
+
+\lambda_i &= || K^{-1} h_i^{(1)}||_2 \\
+r_i^{(1)} &= \frac{1}{\lambda_i}K^{-1}h_i^{(1)} \\
+r_i^{(2)} &= \frac{1}{\lambda_i}K^{-1}h_i^{(2)} \\
+r_i^{(3)} &= r_i^{(1)} \times r_i^{(2)} \\
+t_i &= \frac{1}{\lambda_i}K^{-1}h_i^{(3)}
+
+\end{align*}
+$$
+
+- Refer to slides handwritten notes or slides for more derivation equations.
+
+Reprojection Error
+
+- Compute root mean squared error RMSE
+- $RMSE = \sqrt{\frac{1}{n}\sum_i\sum_j ||\Pi(\tilde{q}_{ij}) - \Pi(q_{ij})||_2^2}$
+- where $\tilde{q}_{ij}$ is reprojected using the found $K, R_i, t_i$
+
+Practical considertaions
+
+- Theoretically, at least 3 images are needed for calibration.
+- Rotate the checkboards across the images
+- Place the checkerboard at all positions around the  camera frame
+- Have the checkerboard take up more area of the camera frame
+
 ## Week 5: Nonlinear and Calibration
 
 [Back to top](#topics-covered)
 
+The exercises do not really cover Levenberg-Marquardt, gradients and rotations.
 
+Least-squares problem:
 
-  - Levenberg-Marquardt: least squares problem with 2nd order approximation using only 1st order derivatives
-  - Gradients: analytical or finite differences (Taylor series)
-  - Rotations in Optimization (euler angles, axis angles, quaternions)
+$$
+\min\limits_{x} e(x) = \min\limits_{x} || g(x) - y ||_2^2 \\
+e(x) = f(x)^T f(x)
+$$
+
+Levenberg-Marquardt: least squares problem with 2nd order approximation using only 1st order derivatives
+
+- Jacobian, $J$: contains all 1st order derivatives of f at $x_k$
+- $\tilde{e}$ is a 2nd order approx of $e$ using only 1st order derivatives
+- Find optimum by setting derivative equal to zero
+
+$$
+2 J^T f(x_k) + 2 J^T J \delta = 0 \\
+ J^T J \delta = - J^T f (x_k)
+$$
+
+- solve for $\delta$, set $x_{k+1} = x_k + \delta$
+- Use gradient descent to get closer to the minimum
+
+Gradients: analytical or finite differences (Taylor series)
+
+1. Analytical gradients: + accurate, + fast computation, - complicated
+
+2. Finite differences using Taylor series
+    - 1st order, forward differences: $\frac{d}{dx} f(x) =  \frac{f(x+h)-f(x)}{h}+O(h)$
+    - 2nd order, central differences: $\frac{d}{dx} f(x) =  \frac{f(x+h)-f(x-h)}{2h}+O(h^2)$, more accurate & computation
+    - $h$ is chosen as a fixed percentage of x
+
+Rotations in Optimization
+
+- Euler angles: 3 numbers, one for each axis, prone to gimbal lock
+- Axis angles: rotation $\theta$ about axis $v$, store as 3 elements with $v*\theta$, singularity at $0$
+- Quaternions: 4 numbers with $q_1^2 + q_2^2 + q_3^2 + q_4^2 = 1$, requires normalization at each step
+
+Camera Calibration (advanced issues)
+
+- ChArUco boards <img src="assets/charucoboard.png" width="100" style="transform:rotate(90deg)">
+- Subpixel corner estimation
+- Be mindful of over-fitting, cross-validation
 
 ## Week 6: Simple Features
 
