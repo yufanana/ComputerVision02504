@@ -79,6 +79,85 @@ git commit -m "<message>" --no-verify
 
 [Back to top](#topics-covered)
 
+Projections
+
+- 3D point projects to a 2D point on a camera frame
+- 3D line projects to a 2D line, except if the line is parallel to the projection line
+- 3D plane projects to a 2D plane, except if the plane is parallel to the projection line
+
+Epipolar line
+
+- A point seen in camera 1 lies along a specific 3D line
+- That 3D line projects into a 2D line in camera 2 $\rarr$ epipolar line from $q_1$ to $Q$
+- A point seen in camera 1 must lie along the epipolar line of camera 2
+- All epipolar lines intersect at the epipoles
+
+<img src="assets/epipolar_line.png" width="400">
+<img src="assets/epipolar_plane.png" width="400">
+
+Essential Matrix, $E = [t]_{\times} R$
+
+- Used to relate the normal of the epipolar plane given by a 3D point
+- $q_i$: 2D point from {cam_i} in pixels
+- $p_1$: 3D point from {cam1}
+- $p_2$: correspoding 3D point from {cam2}
+- $q = Kp$
+- $p = K^{-1}q$
+
+<img src="assets/essential_matrix.png" width="400">
+
+Vectors in the figure are in {cam2}. $R, t$ maps {cam1} wrt {cam2}
+
+- $n = [t]_{\times} R p_1 = E p_1$
+- $0 = p_2^T n = p_2^T E p_1$
+
+Fundamental Matrix, $F = K_2^{-T} E K_1^{-1}$
+
+$$
+\begin{align*}
+
+p_2^T E p_1 &= 0 \\
+(K_2^{-1}q_2)^T E (K_1^{-1}q_1) &= 0 \\
+q_2^T K_2^{-T} E K_1^{-1} q_1 &= 0
+
+\end{align*}
+$$
+
+- Epipolar line in camera 2: $l_2 = F p_1$
+- Epipolar line in camera 1: $l_1^T = q_2^T F$
+- Essential (3D) and Fundamentral matrices (2D) form requirements for pixel correspondence
+
+$$
+\begin{align*}
+
+p_2^T E p_1 &= 0 \\
+q_2^T F q_1 &= 0
+
+\end{align*}
+$$
+
+Triangulation
+
+<img src="assets/triangulation.png" width="400">
+
+- Solving for the 3D point based on observation of the same point in many known cameras
+
+$$
+\begin{align*}
+
+q_i =  \begin{bmatrix} s_i x_i \\ s_i y_i \\ s_i \end{bmatrix} = P_iQ &= \begin{bmatrix} p_i^{(1)}Q \\ p_i^{(2)}Q \\ p_i^{(3)}Q \end{bmatrix} \\
+
+(p_i^{(3)} Q) \begin{bmatrix} x_i \\ y_i \end{bmatrix} &= \begin{bmatrix} p_i^{(1)}Q \\ p_i^{(2)}Q  \end{bmatrix} \\
+
+0 &= \begin{bmatrix} p_i^{(3)}x_i - p_i^{(1)} \\ p_i^{(3)}y_i - p_i^{(2)}  \end{bmatrix} Q \\
+&= B^{(i)} Q
+
+\end{align*}
+$$
+
+- use SVD to find $\argmin\limits_{Q} ||BQ||_2, s.t. ||Q||_2 = 1$
+- In this linear algorithm, the error is larger for cameras that are further from Q due to the $s_i$ term.
+
 ## Week 4: Camera Calibration
 
 [Back to top](#topics-covered)
