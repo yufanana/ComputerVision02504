@@ -16,6 +16,8 @@ This repository contains my personal notes and notebooks used as part of the cou
 | [Week 8: SIFT features](#week-8-blobs-and-sift-features) | BLOB detection <br> Scale space pyramid <br> Difference of Gaussians <br> SIFT features |
 | [Week 9: Geometry Constrained Feature<br> Matching](#week-9-geometry-constrained-feature-matching) | Esimate Fundamental matrix using RANSAC <br> Sampson's distance |
 | [Week 10: Image Stitching](#week-10-image-stitching) | Estimate Homography <br> Panoramas |
+| [Week 11: Visual Odometry](#week-11-visual-odometry) |  |
+| [Week 13: Structured Light](#week-13-structured-light) | Binary encoding <br> Gray code encoding <br> Phase shift encoding |
 
 ## Installation
 
@@ -691,3 +693,81 @@ RANSAC Workflow
 <img src="assets/chi_square_distribution.png" width="500">
 
 ## Week 10: Image Stitching
+
+[Back to top](#topics-covered)
+
+## Week 11: Visual Odometry
+
+[Back to top](#topics-covered)
+
+## Week 13: Structured Light
+
+[Back to top](#topics-covered)
+
+### Laser line scanning
+
+- detect laser line in each image, triangulate, repeat
+- slow method due to one triangulation line per image
+
+Encoding surfaces
+
+1. For each pixel in the camera, identify the code/color
+2. For each code/code border, identify the corresponding light plane
+3. Triangulate using pixel rays and the "laser plane"
+
+### Binary encoding
+
+<img src="assets/binary_encoding.png" width="500">
+
+- discrete encoding scheme: only 3D points at code-borders
+- frame + inverted frame improves robustness against ambient light and varying object color
+- N frames $/rarr$ $2^N$ unique regions, $2^N-1$ unique borders
+- With 1920 pixels wide, $ N \le \log_2(W) \approx 10.9$. Max of 20 frames in total with inverted frames.
+- suffers from the border problems where a single bit change great changes the code
+
+### Gray code encoding
+
+<img src="assets/graycode_encoding.png" width="500">
+
+- discrete encoding scheme: only 3D points at code-borders
+- overcomes border problems of binary encoding
+- only 1 bit flip at code borders, with same number of frames as binary patterns
+
+### Phase shift encoding
+
+<img src="assets/phase_shifting.png" width="500">
+
+- continuous encoding scheme: 3D point for each pixel in the camera
+- each point has a unique phase-plane ($\theta$)
+- monochrome pattern is good for color objects
+- the projector shoots a light intensity of $I(x,y) = \frac{1}{2} + \frac{1}{2} cos (n \cdot \theta (x))$
+
+Workflow
+
+- phase shift exactly one wavelength in $s$ steps
+- use fast Fourier transform to fit a sinusoid and find $n \cdot \theta$ for a single picel
+- the 2nd element of the FFT is a complex number with $\theta = angle(FFT_2)$
+
+Phase wrapping
+
+- the measured phase differs from the expected phase because the phases are wrapped to between 0 and $2 \pi$
+- unwrapping is done using Heterodyne principle
+
+Heterodyne principle
+
+- a smart way to recover $\theta$ by subtracting the secondary phase from the primary phase
+- project 2 patterns: primary pattern (period $n_1$) and secondary pattern (period $n_2$), such that $n_2 = n_1 + 1$
+- phase cue, $\theta_c = mod(\theta_2 (x) - \theta_1 (x), 2 \pi)$ (linear in errors of $\theta_1$ and $\theta_2$)
+- to make $\theta_{estimate}$ more robust to noise, using **order** and **rounding**
+  - $o_1 = \lfloor \frac{n_1 \cdot \theta_c - \theta_1}{2 \pi} \rceil$ (round to nearest integer)
+  - $\theta_{est} = \frac{2 \pi o_1 + \theta_1}{n_1} mod 2\pi$ (error of $\frac{\epsilon_1}{n_1}$)
+
+<img src="assets/phase_wrapping.png" width="500">
+
+Final notes
+
+- instead of projector plane triangulation, epipolar lines in the cameras can be used
+- provided that the project planes are not parallel with the epipolar planes
+- rectifying: virtually make cameras parallel to each other, so that epipolar lines are corresponding rows
+
+<img src="assets/rectify.png" width="400">
