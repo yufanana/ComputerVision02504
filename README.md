@@ -75,17 +75,84 @@ git commit -m "<message>" --no-verify
 
 [Back to top](#topics-covered)
 
+### Camera Intrinsics
+
+$$
+\begin{bmatrix} 
+f & \beta f & \delta_x \\
+ 0 & \alpha f & \delta_y \\
+ 0 & 0 & 1
+\end{bmatrix}
+$$
+
+- focal length $f$: pixel distance from pinhole to image plane, performs scaling to make the projected point into pixel coordinates
+- principal point $\delta_x \ \delta_y$: translates to make (0,0) correct
+- skew parameters $\alpha \ \beta$: to correct for non-square pixels and non-rectangular pixels respectively
+- $P = K \begin{bmatrix}R & t \end{bmatrix}$ has 12 degrees of freedom (DoF): 5 from K, 3 rotation, 3 translation, 1 scale (not useful)
+
+### Lens distortion
+
+$$
+\begin{align*}
+\begin{bmatrix} x_d \\ y_d \end{bmatrix} &= dist \begin{bmatrix} x \\ y \end{bmatrix} \\
+&= \begin{bmatrix} x \\ y \end{bmatrix} \cdot (1 + \Delta r (\sqrt{x^2+y^2}))
+\end{align*}
+$$
+
+where, $\Delta r(r) = k_3r^2 + k_5r^4 + k_7r^6 + ...$
+
+<img src="assets/distortion_barrel.png" width="200">
+<img src="assets/distortion_pincushion.png" width="200">
+
+- Projection without distortion: $p = K \Pi^{-1} ( \Pi (\begin{bmatrix}R & t \end{bmatrix} Q))$
+- Projection with distortion: $p_d = K \Pi^{-1} ( dist( \Pi (\begin{bmatrix}R & t \end{bmatrix} Q)))$
+- Undistortion
+  - use $dist(\cdot), K, p$ to find $p_d$
+  - use bilinear interpolation to compute RGB at point $p_d$
+  - inverting $dist(\cdot)$ is not needed, but can be done iteratively
+
+### Homography, $q_1 = H q_2$
+
+- establish pixel correspondence between 2 cameras viewing the same plane
+- scale invariant
+- 8 DoF: requires 4 pairs of points to estimate $H$, each pair imposes constraints on x and y
+- $q_1 = H_1 Q, q_2 = H_2 Q$
+- $q_1 = H_1 H_2^{-1} q_2 = H q_2$
+
+Homography Estimation
+
+$$
+\begin{align*}
+q_{1i} &= H q_{2i} \\
+0 &= q_{1i} \times H q_{2i} \\
+0 &= B^{(i)} flatten(H^T) \\
+\end{align*}
+$$
+
+- where $B^{(i)}$ is a 3x9 matrix built from the x-y coordinates of the pair of points.
+- Solve for H using SVD $s.t. ||B||_2 = 1$
+
+### Point Normalization
+
+- mean 0, standard deviation 1
+- $p_i = \sigma \tilde{p}_i + \mu$
+- $\tilde{q}_i = T q_i$, where q is homogeneous
+- $q_i = T^{-1} \tilde{q}_i = \begin{bmatrix}\sigma_x & 0 & \mu_x \\ 0 & \sigma_y & \mu_y \\ 0 & 0 & 1 \end{bmatrix} \tilde{q}_i$
+- Invert $T^{-1}$ to get $T$
+- Estimate homography $\tilde{H}$ using normalized points, and obtain the homography $H$ that operates on the original points
+  - $q_{1i} = T^{-1}_1 \tilde{H} T_2 q_{2i} = H q_{2i}$
+
 ## Week 3: Multiview Geometry
 
 [Back to top](#topics-covered)
 
-Projections
+### Projections
 
 - 3D point projects to a 2D point on a camera frame
 - 3D line projects to a 2D line, except if the line is parallel to the projection line
 - 3D plane projects to a 2D plane, except if the plane is parallel to the projection line
 
-Epipolar line
+### Epipolar line
 
 - A point seen in camera 1 lies along a specific 3D line
 - That 3D line projects into a 2D line in camera 2 $\rarr$ epipolar line from $q_1$ to $Q$
@@ -95,7 +162,7 @@ Epipolar line
 <img src="assets/epipolar_line.png" width="400">
 <img src="assets/epipolar_plane.png" width="400">
 
-Essential Matrix, $E = [t]_{\times} R$
+### Essential Matrix, $E = [t]_{\times} R$
 
 - Used to relate the normal of the epipolar plane given by a 3D point
 - $q_i$: 2D point from {cam_i} in pixels
@@ -111,15 +178,13 @@ Vectors in the figure are in {cam2}. $R, t$ maps {cam1} wrt {cam2}
 - $n = [t]_{\times} R p_1 = E p_1$
 - $0 = p_2^T n = p_2^T E p_1$
 
-Fundamental Matrix, $F = K_2^{-T} E K_1^{-1}$
+### Fundamental Matrix, $F = K_2^{-T} E K_1^{-1}$
 
 $$
 \begin{align*}
-
 p_2^T E p_1 &= 0 \\
 (K_2^{-1}q_2)^T E (K_1^{-1}q_1) &= 0 \\
 q_2^T K_2^{-T} E K_1^{-1} q_1 &= 0
-
 \end{align*}
 $$
 
@@ -129,14 +194,12 @@ $$
 
 $$
 \begin{align*}
-
 p_2^T E p_1 &= 0 \\
 q_2^T F q_1 &= 0
-
 \end{align*}
 $$
 
-Triangulation
+### Triangulation
 
 <img src="assets/triangulation.png" width="400">
 
@@ -144,14 +207,10 @@ Triangulation
 
 $$
 \begin{align*}
-
 q_i =  \begin{bmatrix} s_i x_i \\ s_i y_i \\ s_i \end{bmatrix} = P_iQ &= \begin{bmatrix} p_i^{(1)}Q \\ p_i^{(2)}Q \\ p_i^{(3)}Q \end{bmatrix} \\
-
 (p_i^{(3)} Q) \begin{bmatrix} x_i \\ y_i \end{bmatrix} &= \begin{bmatrix} p_i^{(1)}Q \\ p_i^{(2)}Q  \end{bmatrix} \\
-
 0 &= \begin{bmatrix} p_i^{(3)}x_i - p_i^{(1)} \\ p_i^{(3)}y_i - p_i^{(2)}  \end{bmatrix} Q \\
 &= B^{(i)} Q
-
 \end{align*}
 $$
 
@@ -162,22 +221,20 @@ $$
 
 [Back to top](#topics-covered)
 
-Direct Linear Transformation
+### Direct Linear Transformation
 
 $$
 \begin{align*}
-
 q_i &= P Q_i \\
 0 &= q_i \times P Q_i \\
  &= B^{(i)} flatten(P^T)
-
 \end{align*}
 $$
 
 - where $B^{(1)}$ is a 3x12 matrix
 - solve for B using SVD
 
-Zhang's method for linear calibration
+### Zhang's method for linear calibration
 
 <img src="assets/checkerboard.png" width="200">
 
@@ -186,39 +243,25 @@ Zhang's method for linear calibration
 $$
 \begin{align*}
 q_ij &= H_i \tilde{Q}_j \\
-
 H_i = [h_i^{(1)} h_i^{(2)} h_i^{(3)}] &= \lambda K [r_i^{(1)} r_i^{(2)} t_i] \\
-
-{h_i^{(1)}}^T K^{-T} K^{-1}h_i^{2}
- &= 0 \\
-
-{h_i^{(1)}}^T K^{-T} K^{-1}h_i^{1} = 
-{h_i^{(2)}}^T K^{-T} K^{-1}h_i^{2} &= 
-\lambda_i^2
-
+{h_i^{(1)}}^T K^{-T} K^{-1}h_i^{2} &= 0 \\
+{h_i^{(1)}}^T K^{-T} K^{-1}h_i^{1} = {h_i^{(2)}}^T K^{-T} K^{-1}h_i^{2} &= \lambda_i^2
 \end{align*}
 $$
 
 - A single homography only fixes 2 DoF of a camera matrix.
-
 - Rewriting the constraints into a matrix form,
 
 $$
-V b = \begin{bmatrix}
-v_i^{12} \\[0.3em]
-v_i^{11} - v_i^{22}\\[0.3em]
-...
-\end{bmatrix} b = 0 \\
+V b = \begin{bmatrix} v_i^{12} \\ v_i^{11} - v_i^{22}\\ ... \end{bmatrix} b = 0 \\
 $$
 
 where
 $$
 \begin{align*}
-
 v_i^{\alpha \beta} b &= {h_i^{\alpha}}^T B h_i^{\beta} \\
 b &= \begin{bmatrix}B_{11} & B_{12} & B_{22} & B_{13} & B_{23} & B_{33} \end{bmatrix} \\
 B &= K^{-T} K^{-1}
-
 \end{align*}
 $$
 
@@ -228,19 +271,17 @@ $$
 
 $$
 \begin{align*}
-
 \lambda_i &= || K^{-1} h_i^{(1)}||_2 \\
 r_i^{(1)} &= \frac{1}{\lambda_i}K^{-1}h_i^{(1)} \\
 r_i^{(2)} &= \frac{1}{\lambda_i}K^{-1}h_i^{(2)} \\
 r_i^{(3)} &= r_i^{(1)} \times r_i^{(2)} \\
 t_i &= \frac{1}{\lambda_i}K^{-1}h_i^{(3)}
-
 \end{align*}
 $$
 
 - Refer to slides handwritten notes or slides for more derivation equations.
 
-Reprojection Error
+### Reprojection Error
 
 - Compute root mean squared error RMSE
 - $RMSE = \sqrt{\frac{1}{n}\sum_i\sum_j ||\Pi(\tilde{q}_{ij}) - \Pi(q_{ij})||_2^2}$
@@ -259,28 +300,29 @@ Practical considertaions
 
 The exercises do not really cover Levenberg-Marquardt, gradients and rotations.
 
-Least-squares problem:
+Least-squares problem
 
 $$
 \min\limits_{x} e(x) = \min\limits_{x} || g(x) - y ||_2^2 \\
 e(x) = f(x)^T f(x)
 $$
 
-Levenberg-Marquardt: least squares problem with 2nd order approximation using only 1st order derivatives
+### Levenberg-Marquardt
 
+- least squares problem with 2nd order approximation using only 1st order derivatives
 - Jacobian, $J$: contains all 1st order derivatives of f at $x_k$
 - $\tilde{e}$ is a 2nd order approx of $e$ using only 1st order derivatives
 - Find optimum by setting derivative equal to zero
 
 $$
 2 J^T f(x_k) + 2 J^T J \delta = 0 \\
- J^T J \delta = - J^T f (x_k)
+J^T J \delta = - J^T f (x_k)
 $$
 
 - solve for $\delta$, set $x_{k+1} = x_k + \delta$
 - Use gradient descent to get closer to the minimum
 
-Gradients: analytical or finite differences (Taylor series)
+### Gradients: analytical or finite differences (Taylor series)
 
 1. Analytical gradients: + accurate, + fast computation, - complicated
 
@@ -289,7 +331,7 @@ Gradients: analytical or finite differences (Taylor series)
     - 2nd order, central differences: $\frac{d}{dx} f(x) =  \frac{f(x+h)-f(x-h)}{2h}+O(h^2)$, more accurate & computation
     - $h$ is chosen as a fixed percentage of x
 
-Rotations in Optimization
+### Rotations in Optimization
 
 - Euler angles: 3 numbers, one for each axis, prone to gimbal lock
 - Axis angles: rotation $\theta$ about axis $v$, store as 3 elements with $v*\theta$, singularity at $0$
@@ -312,7 +354,7 @@ Problems with image correspondence
 - Key points/interest points/feature points: coordinate position of points in an image
 - Descriptors: characterizes pattern around a point (usually a vector)
 
-Convolution
+### Convolution
 
 - Synonymous with filtering.
 - Is commutative $I_g = g * I = I * g$
@@ -324,7 +366,7 @@ Convolution
 
 <img src="assets/convolution.png" width="500">
 
-Derivative of Gaussian
+### Derivative of Gaussian
 
 $$
 g_d(x) = \frac{d}{dx}g(x) = \frac{-x}{\sigma^2}g(x)
@@ -344,7 +386,7 @@ $$
 
 <img src="assets/gaussian_kernels_sigma.png" width="500">
 
-Harris Corners
+### Harris Corners
 
 - Points with locally maximum change from a small shift
 - A local area where $\Delta I(x,y,\Delta_x, \Delta_y)^2$ is large no matter $\Delta_x, \Delta_y$
@@ -359,7 +401,6 @@ Harris corner measure
 
 $$
 \begin{align*}
-
 c(x,y,\Delta_xm \Delta_y) &= g * \Delta I(x,y,\Delta _x, \Delta _y) \\
 &= g * (I(x,y,) - I(x+\Delta_x, y+ \Delta_y))^2 \\
 &\approx g * (\begin{bmatrix}I_x & I_y\end{bmatrix} \begin{bmatrix} \Delta_x \\ \Delta_y \end{bmatrix})^2 \\
@@ -373,7 +414,6 @@ g * (I_x^2) & g * (I_x I_y) \\[0.3em]
 g * (I_x I_y) & g * (I_y^2) \\[0.3em]
 \end{bmatrix}
 \begin{bmatrix} \Delta_x \\ \Delta_y \end{bmatrix}
-
 \end{align*}
 $$
 
@@ -381,7 +421,6 @@ Structure tensor
 
 $$
 \begin{align*}
-
 C(x,y) &=
 \begin{bmatrix}
 g * (I_x^2) & g * (I_x I_y) \\[0.3em]
@@ -391,7 +430,6 @@ g * (I_x I_y) & g * (I_y^2) \\[0.3em]
 a & c \\[0.3em]
 c & b \\[0.3em]
 \end{bmatrix} \\
-
 \end{align*}
 $$
 
@@ -401,10 +439,8 @@ Harris corner metric
 
 $$
 \begin{align*}
-
 r(x,y) &= \lambda_1 \lambda_2 - k(\lambda_1 + \lambda_2)^2  \\
 &= ab - c^2 - k(a+b)^2
-
 \end{align*}
 $$
 
@@ -414,7 +450,7 @@ typically $k=0.06$
 - threshold $\tau$ is about $0.1\cdot max(r(x,y)) < \tau < 0.8 \cdot max (r(x,y))$
 - Find local maximum using non-max suppression
 
-Canny Edges
+### Canny Edges
 
 - Metric is the gradient magnitude
 
@@ -430,7 +466,7 @@ $$
 
 [Back to top](#topics-covered)
 
-Hough Lines
+### Hough Lines
 
 - Vertical lines are undefined in cartesian $\Rightarrow$ use polar coordinates
 - Represent a line with $\theta, r$
@@ -451,7 +487,7 @@ Hough Transform
 
 <img src="assets/hough_transform_eg.png" width="500">
 
-Random sample consensus, RANSAC
+### Random sample consensus, RANSAC
 
 - Randomly sample minimum number of points needed to fit the model
   - e.g. 2 data points for a line
@@ -491,8 +527,9 @@ RANSAC iterations
 
 See examples in [ex8.ipynb](notebooks/ex8.ipynb)
 
-SIFT: features localized at interest points, adapted to scale, inavariance to appearance changes
+### SIFT
 
+- features localized at interest points, adapted to scale, inavariance to appearance changes
 - scale-space blob detection using difference of Gaussians (DoG)
 - interest point localization
 - orientation assignment
@@ -570,11 +607,9 @@ y_{2i}  \ \ \
 x_{1i} \ \ \
 y_{1i} \ \ \
 1] \\
-
 flatten(F) &= [F_{11} \ \ F_{12} \ \ F_{13}
             \ \ F_{21} \ \ F_{22} \ \ F_{23}
             \ \ F_{31} \ \ F_{32} \ \ F_{33}]^T
-
 \end{align*}
 $$
 
@@ -617,5 +652,3 @@ RANSAC Workflow
 <img src="assets/chi_square_distribution.png" width="500">
 
 ## Week 10: Image Stitching
-
-
