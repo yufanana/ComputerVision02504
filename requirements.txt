@@ -1,5 +1,6 @@
 ipykernel == 6.29.2
 matplotlib == 3.8.2
+open3d == 0.18.0
 opencv-python == 4.9.0.80
 pre-commit == 3.6
 PyQt5 == 5.15.10
