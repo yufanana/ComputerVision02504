@@ -696,6 +696,37 @@ RANSAC Workflow
 
 [Back to top](#topics-covered)
 
+Panoramas
+
+- When the camera rotates without translation, there are no perspective deformations
+- Assume the world is flat $\rarr$ equivalent to look at a flad 2D world image
+
+Measuring the error of a match: determine if a pair of points are inliners with respect to a homography.
+
+$$
+\tilde{q_1} = q_1 + \epsilon_1, \tilde{q_2} = q_2 + \epsilon_2 \\
+\tilde{p_1} = \Pi^{-1} (\tilde{q_1}), \tilde{p_2} = \Pi^{-1} (\tilde{q_2})
+$$
+
+A possible error could be $||\tilde{q_1} - \Pi(H \Pi^{-1}(q_2)) ||^2_2 + ||\tilde{q_2} - q_2||^2_2$, but this does not work because $q_2$ is unknown
+
+Instead use the following approximation:
+
+$$
+dist^2_{approx} = ||\tilde{q_1} - \Pi(H \tilde{p_2}) ||^2_2 + ||\tilde{q_2} - \Pi(H^{-1}\tilde{p_1})||^2_2
+$$
+
+Transforming & warping images
+
+- generate all x,y coordinates for all pixels in reference image
+- map these to other image using homography
+- use bilinear interpolation to compute values at the transformed pixel locations
+- warp only valid parts of each image
+
+Compositing images
+
+- averge, overlap, median, graph cut
+
 ## Week 11: Visual Odometry
 
 [Back to top](#topics-covered)
