@@ -35,7 +35,7 @@ def Pi(ph):
     Converts coordinates from homogeneous to inhomogeneous.
 
     Args:
-        ph (np.array): shape (n+1,m)  
+        ph (np.array): shape (n+1,m)
 
     Returns:
         p (np.array): shape (n,m)
@@ -53,7 +53,7 @@ def PiInv(p):
         p (np.array): shape (n,m)
 
     Returns:
-        ph (np.array): shape (n+1,m)  
+        ph (np.array): shape (n+1,m)
     """
     ph = np.vstack((p, np.ones(p.shape[1])))
     return ph
@@ -770,4 +770,3 @@ def find_features(im1, im2, plot=False):
         mpl.rcParams["figure.figsize"] = [8, 6]
 
     return matches, kp1, kp2
-

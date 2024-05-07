@@ -29,7 +29,7 @@ cd ComputerVision02504
 Create an environment with `Conda`.
 
 ```bash
-conda create --name cv
+conda create --name cv python=3.11
 pip install -r requirements.txt
 ```
 
