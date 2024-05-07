@@ -1,6 +1,6 @@
 # ComputerVision02504
 
-This repository contains my personal notes and notebooks used as part of the course 02504 Computer Vision, at DTU in Spring 2024. Syntax for writing markdown can be found at [ashki23](https://ashki23.github.io/markdown-latex.html).
+This repository contains my personal notes and notebooks used as part of the course 02504 Computer Vision, at DTU in Spring 2024.
 
 ## Topics Covered
 
@@ -52,6 +52,10 @@ When running the Jupyter notebooks, select kernel of the environment previously 
 
 ## Development
 
+Syntax for writing markdown can be found at [ashki23](https://ashki23.github.io/markdown-latex.html).
+
+The markdown file can be exported into HTML using the [Markdown+Math](https://marketplace.visualstudio.com/items?itemName=goessner.mdmath) extension by goessner on VSCode.
+
 Set up pre-commit for code checking. Hooks can be found in `.pre-commit-config.yaml`
 
 ```bash
@@ -71,6 +75,41 @@ git commit -m "<message>" --no-verify
 
 [Back to top](#topics-covered)
 
+### Pinhole camera
+
+<img src="assets/pinhole_model.png" width="400">
+
+- In pixel coordinates, (0,0) is usually in the upper left corner of the image
+- $\delta_x , \delta_y$ is used to translate (0,0) from principal point to the upper left corner.
+- $p_x = \frac{f}{P_z} P_x + \delta_x$
+- $p_y = \frac{f}{P_z} P_y + \delta_y$
+- $p_h = K P = \begin{bmatrix} f & \beta f & \delta_x \\  0 & \alpha f & \delta_y \\ 0 & 0 & 1 \end{bmatrix} P$
+
+- Camera extrinsics: rotation $R$ and translation $t$
+- Projection matrix, $\mathcal{P}$: $p_h = \mathcal{P} P_h = K \begin{bmatrix} R & t \end{bmatrix} P_h $
+
+### Homogeneous coordinates
+
+- Euclidean/rigid transformation, $P_1 = RP_0 + t$
+- $\begin{bmatrix} 1 \\ 2 \\ 3 \\ 1 \end{bmatrix}$ and $\begin{bmatrix} 2 \\ 4 \\ 6 \\ 2\end{bmatrix}$ are the same point in homogeneous coordinates
+- Homogeneous tranformation, $T = \begin{bmatrix} \mathbf{R} & \mathbf{t} \\ \mathbf{0} & 1\end{bmatrix}$ (4x4)
+- $\Pi( \ )$: converts from homo to inhomo coordinates
+- $\Pi^{-1}( \ )$: converts from inhomo to homo coordinates
+
+### Homogeneous Lines
+
+$$
+\begin{align*}
+0 &= ax + by +c \\
+&= \begin{bmatrix} a \\ b \\ c \end{bmatrix}^T \begin{bmatrix} sx \\ sy \\ s \end{bmatrix} \\
+&= l^T p_h
+\end{align*}
+$$
+
+- If $a^2 + b^2 = 1$ and $s=1$, then $d = l^T p_h$, where d is the signed distance from the point to the line.
+- $l^T p_h = 0$ means the point lies on the line
+- $l_1 \times l_2 = q_h$ cross-product gives the intersection point of 2 lines
+
 ## Week 2: Camera Model and Homography
 
 [Back to top](#topics-covered)
@@ -78,7 +117,7 @@ git commit -m "<message>" --no-verify
 ### Camera Intrinsics
 
 $$
-\begin{bmatrix} 
+K = \begin{bmatrix}
 f & \beta f & \delta_x \\
  0 & \alpha f & \delta_y \\
  0 & 0 & 1
@@ -88,7 +127,7 @@ $$
 - focal length $f$: pixel distance from pinhole to image plane, performs scaling to make the projected point into pixel coordinates
 - principal point $\delta_x \ \delta_y$: translates to make (0,0) correct
 - skew parameters $\alpha \ \beta$: to correct for non-square pixels and non-rectangular pixels respectively
-- $P = K \begin{bmatrix}R & t \end{bmatrix}$ has 12 degrees of freedom (DoF): 5 from K, 3 rotation, 3 translation, 1 scale (not useful)
+- $\mathcal{P} = K \begin{bmatrix}R & t \end{bmatrix}$ has 12 degrees of freedom (DoF): 5 from K, 3 rotation, 3 translation, 1 scale (not useful)
 
 ### Lens distortion
 
@@ -207,7 +246,7 @@ $$
 
 $$
 \begin{align*}
-q_i =  \begin{bmatrix} s_i x_i \\ s_i y_i \\ s_i \end{bmatrix} = P_iQ &= \begin{bmatrix} p_i^{(1)}Q \\ p_i^{(2)}Q \\ p_i^{(3)}Q \end{bmatrix} \\
+q_i =  \begin{bmatrix} s_i x_i \\ s_i y_i \\ s_i \end{bmatrix} = \mathcal{P}_iQ &= \begin{bmatrix} p_i^{(1)}Q \\ p_i^{(2)}Q \\ p_i^{(3)}Q \end{bmatrix} \\
 (p_i^{(3)} Q) \begin{bmatrix} x_i \\ y_i \end{bmatrix} &= \begin{bmatrix} p_i^{(1)}Q \\ p_i^{(2)}Q  \end{bmatrix} \\
 0 &= \begin{bmatrix} p_i^{(3)}x_i - p_i^{(1)} \\ p_i^{(3)}y_i - p_i^{(2)}  \end{bmatrix} Q \\
 &= B^{(i)} Q
@@ -225,9 +264,9 @@ $$
 
 $$
 \begin{align*}
-q_i &= P Q_i \\
-0 &= q_i \times P Q_i \\
- &= B^{(i)} flatten(P^T)
+q_i &= \mathcal{P} Q_i \\
+0 &= q_i \times \mathcal{P} Q_i \\
+ &= B^{(i)} flatten(\mathcal{P}^T)
 \end{align*}
 $$
 
