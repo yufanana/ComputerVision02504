@@ -1,5 +1,5 @@
 """
-Compilation functions commonly used in exercises, quizzes and exams 
+Compilation functions commonly used in exercises, quizzes and exams
 for DTU course 02504 Computer Vision.
 """
 import cv2

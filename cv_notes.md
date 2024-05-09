@@ -11,7 +11,7 @@ Export markdown file to HTML: [Markdown+Math](https://marketplace.visualstudio.c
 | [Week 1: Pinhole and homogeneous](#week-1-pinhole-and-homogeneous) | Homogenous coordinates <br> pinhole model <br> projection |
 | [Week 2: Camera model and homography](#week-2-camera-model-and-homography) | Camera model <br> Lens distortion <br> Homography <br> Point normalization |
 | [Week 3: Multiview geometry](#week-3-multiview-geometry) | Epipolar <br> Essential matrix <br> Fundamental matrix <br> Triangulation |
-| [Week 4: Camera calibration](#week-4-camera-calibration) | Direct linear transformation <br> Linear camera calibration|
+| [Week 4: Camera calibration](#week-4-camera-calibration) | Direct linear transformation <br> Linear camera calibration <br> Zhang's method|
 | [Week 5: Nonlinear and calibration](#week-5-nonlinear-and-calibration) | Levenberg-Marquardt <br> Gradients <br> Rotations in optimization |
 | [Week 6: Simple Features](#week-6-simple-features) | Harris corner <br> Gaussian filtering <br> Gaussian derivative |
 | [Week 7: Robust model fitting](#week-7-robust-model-fitting) | Hough line <br> Hough transform <br> RANSAC |
@@ -23,11 +23,14 @@ Export markdown file to HTML: [Markdown+Math](https://marketplace.visualstudio.c
 
 ### Miscellaneous Notes
 
+### Scale
+
 Scale-invariant: functionally equivalent after scalar multiplication (deals with homogeneous coordinates)
 
 - Homography matrix, $H$
 - Essential matrix, $E$
 - Fundamental matrix, $F$
+- Tip: if the matrix is multiplied by a homogeneous coordinate, it is scale-invariant
 
 Scale-variant
 
@@ -35,6 +38,17 @@ Scale-variant
 - Rotation matrix, $R$
 - Camera instrinsics, $K$
 - Translation vector, $t$
+
+### Degree of Freedoms (DoF)
+
+- Essential matrix, $E$: 5, requires $\ge$ 5 pairs of 2D points correspondence
+  - each pair solves 1 DoF
+- Fundamental matrix, $F$: 7, requires $\ge$ 7 pairs of 2D points correspondence
+  - each pair solves 1 DoF
+- Triangulation: 3 ?
+- Homography, $H$: 8, requires 4 pairs of points
+  - each pair solves 2 DoF
+- Perspective-n-Point (PnP): 3, requires $\ge$ 3 correspondences
 
 ## Week 1: Pinhole and Homogeneous
 
@@ -397,8 +411,9 @@ $$
 
 ### Harris Corners
 
-- Points with locally maximum change from a small shift
-- A local area where $\Delta I(x,y,\Delta_x, \Delta_y)^2$ is large no matter $\Delta_x, \Delta_y$
+- points with locally maximum change from a small shift
+- invariant to rotation
+- a local area where $\Delta I(x,y,\Delta_x, \Delta_y)^2$ is large no matter $\Delta_x, \Delta_y$
 
 $$
 \Delta I(x,y,\Delta_x, \Delta_y) = I(x,y,) - I(x+\Delta_x, y+ \Delta_y)
@@ -407,6 +422,7 @@ $$
 Harris corner measure
 
 - approximated using Taylor series expansion
+- found by 1st order derivatives
 
 $$
 \begin{align*}
@@ -516,10 +532,15 @@ RANSAC iterations
 - Estimate the upper bound of the number of iterations required to have at least one sample with only inliers
 - The estimate is updated while running RANSAC
 - $\hat \epsilon = 1 - \frac{s}{m}$
-  - s: no. of inliers of best model
-  - m: total no. of data points
+  - $s$: no. of inliers of best model
+  - $m$: total no. of data points
 - $\hat N = \frac{log(1-p)}{log((1-(1-\hat \epsilon)^n))}$
-  - p: probability that at least one of N samples has only inliers, e.g. $0.99$
+  - $p$: probability that at least one of N samples has only inliers, e.g. $0.99$
+  - $n$: number of data points to fit a single model
+    - 2 for 2D line
+    - 4 for homography
+    - 8 for fundamental matrix (8-point algorithm)
+    - 5 for essential matrix
 - Terminate once there are more than $\hat N$ iterations
 
 | Model | Codimension | $T^2$ |
@@ -559,7 +580,7 @@ $$
 - contains 2nd order derivatives of images
 - measures curvature
 - eigenvalues and eigenvectors are used to measure the direction of most change
-- the Laplacian is used to estimate the eigenvalues (?)
+- the Laplacian $\Delta^2 I$ is used to estimate the eigenvalues (?)
 - the Laplacian is approximated with DoG
 
 Difference of Gaussians (DoG)
