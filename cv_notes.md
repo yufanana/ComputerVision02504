@@ -21,6 +21,21 @@ Export markdown file to HTML: [Markdown+Math](https://marketplace.visualstudio.c
 | [Week 11: Visual Odometry](#week-11-visual-odometry) | Estimate Essential matrix <br> Perspective-n-Point |
 | [Week 13: Structured Light](#week-13-structured-light) | Binary encoding <br> Gray code encoding <br> Phase shift encoding |
 
+### Miscellaneous Notes
+
+Scale-invariant: functionally equivalent after scalar multiplication (deals with homogeneous coordinates)
+
+- Homography matrix, $H$
+- Essential matrix, $E$
+- Fundamental matrix, $F$
+
+Scale-variant
+
+- Projection matrix, $P$
+- Rotation matrix, $R$
+- Camera instrinsics, $K$
+- Translation vector, $t$
+
 ## Week 1: Pinhole and Homogeneous
 
 [Back to top](#topics-covered)
@@ -36,7 +51,9 @@ Export markdown file to HTML: [Markdown+Math](https://marketplace.visualstudio.c
 - $p_h = K P = \begin{bmatrix} f & \beta f & \delta_x \\  0 & \alpha f & \delta_y \\ 0 & 0 & 1 \end{bmatrix} P$
 
 - Camera extrinsics: rotation $R$ and translation $t$
-- Projection matrix, $\mathcal{P}$: $p_h = \mathcal{P} P_h = K \begin{bmatrix} R & t \end{bmatrix} P_h $
+- Projection matrix (3x4), $\mathcal{P}$: $p_h = \mathcal{P} P_h = K \begin{bmatrix} R & t \end{bmatrix} P_h $
+  - $p_h$: homogeneous 2D point, 3x1
+  - $P_h$: homogeneous 3D point, 4x1
 
 ### Homogeneous coordinates
 
@@ -150,6 +167,9 @@ $$
 
 <img src="assets/epipolar_line.png" width="400">
 <img src="assets/epipolar_plane.png" width="400">
+
+- Epipolar line in camera 2: $l_2 = F p_1$
+- Epipolar line in camera 1: $l_1^T = q_2^T F$
 
 ### Essential Matrix, $E = [t]_{\times} R$
 
