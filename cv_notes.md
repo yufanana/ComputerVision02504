@@ -2,7 +2,7 @@
 
 Syntax for writing markdown: [ashki23](https://ashki23.github.io/markdown-latex.html)
 
-Export markdown file to HTML: [Markdown+Math](https://marketplace.visualstudio.com/items?itemName=goessner.mdmath) VSCode extension
+Export markdown file to HTML: [Markdown+Math](https://marketplace.visualstudio.com/items?itemName=goessner.mdmath) VSCode extension. Hotkey: `Ctrl+K` + `,`
 
 ## Topics Covered
 
@@ -23,6 +23,12 @@ Export markdown file to HTML: [Markdown+Math](https://marketplace.visualstudio.c
 
 ### Miscellaneous Notes
 
+Notation
+
+- $p$ is usually a 3D point, can be homogeneous or inhomogeneous
+- $q$ is usually a 2D point, can be homogeneous or inhomogeneous
+- $x_h$: subscript $h$ denotes homogeneous
+
 ### Scale
 
 Scale-invariant: functionally equivalent after scalar multiplication (deals with homogeneous coordinates)
@@ -30,13 +36,13 @@ Scale-invariant: functionally equivalent after scalar multiplication (deals with
 - Homography matrix, $H$
 - Essential matrix, $E$
 - Fundamental matrix, $F$
-- Tip: if the matrix is multiplied by a homogeneous coordinate, it is scale-invariant
+- Projection matrix, $P$
+- Camera instrinsics, $K$
+- *Tip: if the matrix is multiplied by a homogeneous coordinate, it is scale-invariant*
 
 Scale-variant
 
-- Projection matrix, $P$
 - Rotation matrix, $R$
-- Camera instrinsics, $K$
 - Translation vector, $t$
 
 ### Degree of Freedoms (DoF)
@@ -59,7 +65,7 @@ Scale-variant
 <img src="assets/pinhole_model.png" width="400">
 
 - In pixel coordinates, (0,0) is usually in the upper left corner of the image
-- $\delta_x , \delta_y$ is used to translate (0,0) from principal point to the upper left corner.
+- $\delta_x$ and $\delta_y$ is used to translate (0,0) from principal point to the upper left corner.
 - $p_x = \frac{f}{P_z} P_x + \delta_x$
 - $p_y = \frac{f}{P_z} P_y + \delta_y$
 - $p_h = K P = \begin{bmatrix} f & \beta f & \delta_x \\  0 & \alpha f & \delta_y \\ 0 & 0 & 1 \end{bmatrix} P$
@@ -73,9 +79,9 @@ Scale-variant
 
 - Euclidean/rigid transformation, $P_1 = RP_0 + t$
 - $\begin{bmatrix} 1 \\ 2 \\ 3 \\ 1 \end{bmatrix}$ and $\begin{bmatrix} 2 \\ 4 \\ 6 \\ 2\end{bmatrix}$ are the same point in homogeneous coordinates
-- Homogeneous tranformation, $T = \begin{bmatrix} \mathbf{R} & \mathbf{t} \\ \mathbf{0} & 1\end{bmatrix}$ (4x4)
-- $\Pi( \ )$: converts from homo to inhomo coordinates
-- $\Pi^{-1}( \ )$: converts from inhomo to homo coordinates
+- Homogeneous transformation, $T = \begin{bmatrix} \mathbf{R} & \mathbf{t} \\ \mathbf{0} & 1\end{bmatrix}$ (4x4)
+- $\Pi( \ )$: converts from homogeneous to inhomogeneous coordinates
+- $\Pi^{-1}( \ )$: converts from inhomogeneous to homogeneous coordinates
 
 ### Homogeneous Lines
 
@@ -105,9 +111,9 @@ f & \beta f & \delta_x \\
 \end{bmatrix}
 $$
 
-- focal length $f$: pixel distance from pinhole to image plane, performs scaling to make the projected point into pixel coordinates
-- principal point $\delta_x \ \delta_y$: translates to make (0,0) correct
-- skew parameters $\alpha \ \beta$: to correct for non-square pixels and non-rectangular pixels respectively
+- focal length, $f$: pixel distance from pinhole to image plane, performs scaling to make the projected point into pixel coordinates
+- principal point, $\delta_x \ \delta_y$: translates to make (0,0) correct
+- skew parameters, $\alpha \ \beta$: to correct for non-square pixels and non-rectangular pixels respectively
 - $\mathcal{P} = K \begin{bmatrix}R & t \end{bmatrix}$ has 12 degrees of freedom (DoF): 5 from K, 3 rotation, 3 translation, 1 scale (not useful)
 
 ### Lens distortion
@@ -136,7 +142,7 @@ where, $\Delta r(r) = k_3r^2 + k_5r^4 + k_7r^6 + ...$
 - establish pixel correspondence between 2 cameras viewing the same plane
 - scale invariant
 - 8 DoF: requires 4 pairs of points to estimate $H$, each pair imposes constraints on x and y
-- $q_1 = H_1 Q, q_2 = H_2 Q$
+- $q_1 = H_1 Q, \ \ \ q_2 = H_2 Q$
 - $q_1 = H_1 H_2^{-1} q_2 = H q_2$
 
 Homography Estimation
@@ -154,7 +160,7 @@ $$
 
 ### Point Normalization
 
-- mean 0, standard deviation 1
+- transform the points to have mean 0 and standard deviation 1
 - $p_i = \sigma \tilde{p}_i + \mu$
 - $\tilde{q}_i = T q_i$, where q is homogeneous
 - $q_i = T^{-1} \tilde{q}_i = \begin{bmatrix}\sigma_x & 0 & \mu_x \\ 0 & \sigma_y & \mu_y \\ 0 & 0 & 1 \end{bmatrix} \tilde{q}_i$
@@ -188,15 +194,15 @@ $$
 ### Essential Matrix, $E = [t]_{\times} R$
 
 - Used to relate the normal of the epipolar plane given by a 3D point
-- $q_i$: 2D point from {cam_i} in pixels
-- $p_1$: 3D point from {cam1}
-- $p_2$: correspoding 3D point from {cam2}
+- $q_i$: 2D point from frame of camera i, $\{{cam}_i\}$ in pixels
+- $p_1$: 3D point from $\{{cam}_1\}$
+- $p_2$: corresponding 3D point from $\{{cam}_2\}$
 - $q = Kp$
 - $p = K^{-1}q$
 
 <img src="assets/essential_matrix.png" width="400">
 
-Vectors in the figure are in {cam2}. $R, t$ maps {cam1} wrt {cam2}
+Vectors in the figure are in $\{{cam}_2\}$. $R, t$ maps $\{{cam}_1\}$ wrt $\{{cam}_2\}$
 
 - $n = [t]_{\times} R p_1 = E p_1$
 - $0 = p_2^T n = p_2^T E p_1$
@@ -213,7 +219,7 @@ $$
 
 - Epipolar line in camera 2: $l_2 = F p_1$
 - Epipolar line in camera 1: $l_1^T = q_2^T F$
-- Essential (3D) and Fundamentral matrices (2D) form requirements for pixel correspondence
+- Essential (3D) and Fundamental matrices (2D) form requirements for pixel correspondence
 
 $$
 \begin{align*}
@@ -237,7 +243,7 @@ q_i =  \begin{bmatrix} s_i x_i \\ s_i y_i \\ s_i \end{bmatrix} = \mathcal{P}_iQ 
 \end{align*}
 $$
 
-- use SVD to find $\argmin\limits_{Q} ||BQ||_2, s.t. ||Q||_2 = 1$
+- use SVD to find $\argmin\limits_{Q} ||BQ||_2, \ \ \ s.t. ||Q||_2 = 1$
 - In this linear algorithm, the error is larger for cameras that are further from Q due to the $s_i$ term.
 
 ## Week 4: Camera Calibration
@@ -261,7 +267,7 @@ $$
 
 <img src="assets/checkerboard.png" width="200">
 
-- assume checkboard corners are at $z=0$, simplifies the projection equation
+- assume checkerboard corners are at $z=0$, simplifies the projection equation
 
 $$
 \begin{align*}
@@ -303,6 +309,7 @@ t_i &= \frac{1}{\lambda_i}K^{-1}h_i^{(3)}
 $$
 
 - Refer to slides handwritten notes or slides for more derivation equations.
+- See [ex4.ipynb](notebooks/ex4.ipynb) for Python implementation.
 
 ### Reprojection Error
 
@@ -310,11 +317,11 @@ $$
 - $RMSE = \sqrt{\frac{1}{n}\sum_i\sum_j ||\Pi(\tilde{q}_{ij}) - \Pi(q_{ij})||_2^2}$
 - where $\tilde{q}_{ij}$ is reprojected using the found $K, R_i, t_i$
 
-Practical considertaions
+Practical considerations
 
 - Theoretically, at least 3 images are needed for calibration.
-- Rotate the checkboards across the images
-- Place the checkerboard at all positions around the  camera frame
+- Rotate the checkerboards across the images
+- Place the checkerboard at all positions around the camera frame
 - Have the checkerboard take up more area of the camera frame
 
 ## Week 5: Nonlinear and Calibration
@@ -373,17 +380,17 @@ Camera Calibration (advanced issues)
 Problems with image correspondence
 
 - Scale, rotation, translation $\to$ appearance changes depending on distance and pose of camera
-- Other issues: occlusion, lighting intensity, lighting diretion, clutter
+- Other issues: occlusion, lighting intensity, lighting direction, clutter
 - Key points/interest points/feature points: coordinate position of points in an image
 - Descriptors: characterizes pattern around a point (usually a vector)
 
 ### Convolution
 
-- Synonymous with filtering.
+- Synonymous with filtering
 - Is commutative $I_g = g * I = I * g$
 - Is separable $I_g = (g*g^T) * I = g * (g^T*I)$
 - Size of Gaussian filter
-  - Uses an empiric rule of $3\sigma$ or $5\sigma$
+  - Uses an empirical rule of $3\sigma$ or $5\sigma$
   - size = $ 2 \cdot rule \cdot \sigma + 1$
   - e.g. 5-rule, $\sigma=2$, size $= 2 \cdot 5 \cdot 2 + 1 = 21$
 
@@ -473,7 +480,7 @@ typically $k=0.06$
 
 - Corners are at points with $r(x,y) > \tau$
 - threshold $\tau$ is about $0.1\cdot max(r(x,y)) < \tau < 0.8 \cdot max (r(x,y))$
-- Find local maximum using non-max suppression
+- Find local maximum using non-max suppression (e.g. 8-neighborhood)
 
 ### Canny Edges
 
@@ -508,19 +515,19 @@ Hough Transform
 - Each point corresponds to a line in Hough space
 - Peak in hough space $\Rightarrow$ line in image
 - Find peaks using non-max suppression in a region
-- Hough space not practical for more than 3 DoF
+- Hough space is not practical for more than 3 DoF
 
 <img src="assets/hough_transform_eg.png" width="500">
 
 ### Random sample consensus, RANSAC
 
 - Randomly sample minimum number of points needed to fit the model
-  - e.g. 2 data points for a line
-  - e.g. 8 corresponding data points for fundamental matrix
+  - *e.g. 2 data points for a line*
+  - *e.g. 8 corresponding data points for fundamental matrix*
 - Fit the model to the random samples
 - Measure inliers that are close to the model below a threshold $\rarr$ indicates good fit of model
-  - e.g. euclidean distance for a line
-  - e.g. sampson distance for fundamental matrix
+  - *e.g. euclidean distance for a line*
+  - *e.g. sampson distance for fundamental matrix*
 - Consensus is the number of inliers
 - Keep track of best model and best inliers with the highest consensus
 - Refit model to all inliers of the best model
@@ -535,21 +542,13 @@ RANSAC iterations
   - $s$: no. of inliers of best model
   - $m$: total no. of data points
 - $\hat N = \frac{log(1-p)}{log((1-(1-\hat \epsilon)^n))}$
-  - $p$: probability that at least one of N samples has only inliers, e.g. $0.99$
+  - $p$: probability that at least one of $N$ samples has only inliers, e.g. $0.99$
   - $n$: number of data points to fit a single model
     - 2 for 2D line
     - 4 for homography
     - 8 for fundamental matrix (8-point algorithm)
     - 5 for essential matrix
 - Terminate once there are more than $\hat N$ iterations
-
-| Model | Codimension | $T^2$ |
-| :----: | :------: | :------:|
-| Line | 1 | $3.84 \sigma^2$ |
-| Fundamental Matrix | 1 | $3.84 \sigma^2$ |
-| Essential Matrix | 1 | $3.84 \sigma^2$ |
-| Homography | 2 | $5.99 \sigma^2$ |
-| Camera Matrix | 2 | $5.99 \sigma^2$ |
 
 ## Week 8: BLOBs and SIFT features
 
@@ -559,7 +558,7 @@ See examples in [ex8.ipynb](notebooks/ex8.ipynb)
 
 ### SIFT
 
-- features localized at interest points, adapted to scale, inavariance to appearance changes
+- features localized at interest points, adapted to scale, invariant to appearance changes
 - scale-space blob detection using difference of Gaussians (DoG)
 - interest point localization
 - orientation assignment
@@ -585,26 +584,56 @@ $$
 
 Difference of Gaussians (DoG)
 
-$$DoG = L(x,y,k\sigma) - L(x,y,\sigma)$$
+$$
+\begin{align*}
+DoG &= G_{k \sigma} * I - G_\sigma * I \\
+&= L(x,y,k\sigma) - L(x,y,\sigma)
+\end{align*}
+$$
 
 - iteratively blurring already blurred images (efficient)
 - scale invariance: allows features to be detected at different scales
 - kernel size increase with each iteration
 - the same threshold can be applied for all scale spaces
-- find local extrama of DoGs in scale space
+- find local extrema of DoGs in scale space
   - use absolute to find min & max simultaneously
+
+Subpixel localization
+
+- removes points with low contrast
+- 2nd order Taylor approximation of DoG around local maximum
+
+$$
+\begin{align*}
+D(x) &= D + \frac{\partial D^T}{\partial x}x + \frac{1}{2} x^T \frac{\partial^2 D}{\partial x^2} x \\
+
+\hat x &= -\frac{\partial^2 D}{\partial x^2}^{-1} \frac{\partial D}{\partial x} \\
+
+D(\hat x) &= D + \frac{1}{2} \frac{\partial D^T}{\partial x} \hat x
+\end{align*}
+$$
+
+- discard point if $|D(\hat x)| \lt 0.03$
+
+Discard interest points along edges
+
+- Keep if $\frac{trace(H)^2}{det(H)} \lt \frac{(r+1)^2}{r}$
+- *e.g. r=10*
 
 Orientation assignment
 
 - compute orientation of gradient around BLOB
-- compute circular histogram of gradient orientations
+- compute circular histogram of gradient orientations (36 bins)
 - use histogram peak to assign orientation of point
+- this introduces rotation invariance
 
 Matching descriptors
 
 - Use Euclidean distance between normalized vectors
 - Cross checking: keep matches that are closest to each other
-- Ratio test: compute ratio betwen closest and 2nd closest match, keep if it is below threshold e.g. 0.7
+- Ratio test: compute ratio between closest and 2nd closest match, keep if it is below threshold e.g. 0.7
+
+<img src="assets/sift_descriptor.png" width="400">
 
 Variations
 
@@ -615,7 +644,7 @@ Variations
 
 [Back to top](#topics-covered)
 
-Fundamentral and Essential Matrix
+Fundamental and Essential Matrix
 
 $$
 \begin{align*}
@@ -652,7 +681,13 @@ It is also possible to estimate using 7 points.
 
 $ q_2i^TFq_1i $ is the distance from the epipolar lines.
 
-Use **Sampson's distance** to measure distance from model.
+Squared symmetric epipolar distance
+
+$$
+(q_{2i}^T F q_{1i})^2 (\frac{1}{(q_{2i}^T F)_1^2 + (q_{2i}^T F)_2^2} + \frac{1}{(F q_{1i})_1^2 + (F q_{1i})_2^2})
+$$
+
+Instead, use **Sampson's distance** to measure distance from model.
 
 $$
 d_{Samp} (F, q_{1i}, q_{2i}) =
@@ -665,9 +700,17 @@ $$
 
 Threshold for RANSAC
 
-- Assume each sample has error with m-dimensional normal distribution
+- Assume each sample has error with m-dimensional (codimension) normal distribution
 - Choose a confidence level e.g. 95%
 - Look up CDF for $\chi_m^2$ distribution
+
+| Model | Codimension, m | $\tau^{2}$ for 95%|
+| :----: | :------: | :------:|
+| Line | 1 | $3.84 \sigma^2$ |
+| Fundamental Matrix | 1 | $3.84 \sigma^2$ |
+| Essential Matrix | 1 | $3.84 \sigma^2$ |
+| Homography | 2 | $5.99 \sigma^2$ |
+| Camera Matrix | 2 | $5.99 \sigma^2$ |
 
 RANSAC Workflow
 
@@ -689,9 +732,9 @@ RANSAC Workflow
 Panoramas
 
 - When the camera rotates without translation, there are no perspective deformations
-- Assume the world is flat $\rarr$ equivalent to look at a flad 2D world image
+- Assume the world is flat $\rarr$ equivalent to look at a flat 2D world image
 
-Measuring the error of a match: determine if a pair of points are inliners with respect to a homography.
+Measuring the error of a match: determine if a pair of points are inliers with respect to a homography.
 
 $$
 \tilde{q_1} = q_1 + \epsilon_1, \tilde{q_2} = q_2 + \epsilon_2 \\
@@ -700,7 +743,7 @@ $$
 
 A possible error could be $||\tilde{q_1} - \Pi(H \Pi^{-1}(q_2)) ||^2_2 + ||\tilde{q_2} - q_2||^2_2$, but this does not work because $q_2$ is unknown
 
-Instead use the following approximation:
+Instead, use the following approximation:
 
 $$
 dist^2_{approx} = ||\tilde{q_1} - \Pi(H \tilde{p_2}) ||^2_2 + ||\tilde{q_2} - \Pi(H^{-1}\tilde{p_1})||^2_2
@@ -708,25 +751,26 @@ $$
 
 Transforming & warping images
 
-- generate all x,y coordinates for all pixels in reference image
+- generate all x, y coordinates for all pixels in reference image
 - map these to other image using homography
 - use bilinear interpolation to compute values at the transformed pixel locations
 - warp only valid parts of each image
 
 Compositing images
 
-- averge, overlap, median, graph cut
+- average, overlap, median, graph cut
 
 ## Week 11: Visual Odometry
 
 [Back to top](#topics-covered)
 
-Visual odometry, structure from motion (SfM), simulataneous localization and mapping (SLAM)
+Visual odometry, structure from motion (SfM), simultaneous localization and mapping (SLAM)
 
 - scale of $t$ is unknown
 
 ### Estimating E
 
+- used to find pose of the 2nd camera relative to the 1st
 - $E$ has 5 DoF: 3 rotations, 2 translations.
 - solved using Nister's 5-point algorithm in OpenCV
 - $E$ can be computed from $R$ and $t$, but there are 2 possible rotations and the sign of translation is unknown
@@ -775,8 +819,8 @@ Encoding surfaces
 
 - discrete encoding scheme: only 3D points at code-borders
 - frame + inverted frame improves robustness against ambient light and varying object color
-- N frames $/rarr$ $2^N$ unique regions, $2^N-1$ unique borders
-- With 1920 pixels wide, $N \le \log_2(W) \approx 10.9$. Max of 20 frames in total with inverted frames.
+- N frames $\rarr$ $2^N$ unique regions, $2^N-1$ unique borders
+- With 1920 pixels wide, $N \le \log_2(W) \approx 10.9$. Max of 20 frames in total with inverted frames
 - suffers from the border problems where a single bit change great changes the code
 
 $$N \le \log_2(W)$$
@@ -801,7 +845,7 @@ $$N \le \log_2(W)$$
 Workflow
 
 - phase shift exactly one wavelength in $s$ steps
-- use fast Fourier transform to fit a sinusoid and find $n \cdot \theta$ for a single picel
+- use fast Fourier transform to fit a sinusoid and find $n \cdot \theta$ for a single pixel
 - the 2nd element of the FFT is a complex number with $\theta = angle(FFT_2)$
 
 Phase wrapping
@@ -816,7 +860,7 @@ Heterodyne principle
 - phase cue, $\theta_c = mod(\theta_2 (x) - \theta_1 (x), 2 \pi)$ (linear in errors of $\theta_1$ and $\theta_2$)
 - to make $\theta_{estimate}$ more robust to noise, using **order** and **rounding**
   - $o_1 = \lfloor \frac{n_1 \cdot \theta_c - \theta_1}{2 \pi} \rceil$ (round to nearest integer)
-  - $\theta_{est} = \frac{2 \pi o_1 + \theta_1}{n_1} mod 2\pi$ (error of $\frac{\epsilon_1}{n_1}$)
+  - $\theta_{est} = \frac{2 \pi o_1 + \theta_1}{n_1} \ mod \ 2\pi$ (error of $\frac{\epsilon_1}{n_1}$)
 
 <img src="assets/phase_wrapping.png" width="500">
 

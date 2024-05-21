@@ -1,6 +1,5 @@
 """
-Compilation functions commonly used in exercises, quizzes and exams
-for DTU course 02504 Computer Vision.
+Compilation functions commonly used in exercises, quizzes and exams.
 """
 import cv2
 import numpy as np
@@ -94,7 +93,11 @@ def projection_matrix(K: np.ndarray, R: np.ndarray, t: np.ndarray):
 
 # Ex 2.2
 def project_points(
-    K: np.ndarray, R: np.ndarray, t: np.ndarray, Q: np.ndarray, distCoeffs=[]
+    K: np.ndarray,
+    R: np.ndarray,
+    t: np.ndarray,
+    Q: np.ndarray,
+    distCoeffs=[],
 ):
     """
     Project 3D points in Q onto a 2D plane of a camera with distortion.
@@ -146,7 +149,7 @@ def camera_intrinsic(f: float, c: tuple[float, float], alpha=1.0, beta=0.0):
             [f, beta * f, c[0]],
             [0, alpha * f, c[1]],
             [0, 0, 1],
-        ]
+        ],
     )
     return K
 
@@ -429,7 +432,8 @@ def DrawLine(l: np.ndarray, shape: tuple[int, int]):
 
 # Ex 3.11
 def triangulate(
-    q_list: list[np.ndarray], P_list: list[np.ndarray]
+    q_list: list[np.ndarray],
+    P_list: list[np.ndarray],
 ) -> np.ndarray:
     """
     Triangulate a single 3D point seen by n cameras.
@@ -621,7 +625,7 @@ def b_from_B(B: np.ndarray):
 
 
 # Ex 4.7
-def estimate_intrinsics(Hs:list[np.ndarray]):
+def estimate_intrinsics(Hs: list[np.ndarray]):
     """
     Estimate intrinsic matrix using Zhang's method for camera calibration.
 
@@ -1391,7 +1395,11 @@ def Hest_dist(H: np.ndarray, q1: np.ndarray, q2: np.ndarray):
 
 # Ex 10.2
 def ransac_homography(
-    im1: np.ndarray, im2: np.ndarray, threshold: float, iters=200, plot=False
+    im1: np.ndarray,
+    im2: np.ndarray,
+    threshold: float,
+    iters=200,
+    plot=False,
 ):
     """
     Estimate homography matrix using RANSAC.
